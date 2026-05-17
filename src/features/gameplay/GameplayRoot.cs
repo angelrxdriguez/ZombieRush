@@ -1,10 +1,14 @@
 using Godot;
+using ZombieRush.Autoload;
+using ZombieRush.Features.Economy;
 using ZombieRush.Features.Zombies;
 
 namespace ZombieRush.Features.Gameplay;
 
 public partial class GameplayRoot : Node2D
 {
+    private const int MoneyPerZombieKill = 100;
+
     [Export]
     public NodePath PlayerPath { get; set; } = "Actors/Player";
 
@@ -26,6 +30,11 @@ public partial class GameplayRoot : Node2D
     [Export]
     public NodePath ZombieSpawnerPath { get; set; } = "Actors/ZombieSpawner";
 
+    [Export]
+    public NodePath MoneyWalletPath { get; set; } = "Economy/MoneyWallet";
+
+    private MoneyWallet? _moneyWallet;
+
     public override void _Ready()
     {
         var player = GetNodeOrNull<Node2D>(PlayerPath);
@@ -34,6 +43,13 @@ public partial class GameplayRoot : Node2D
         var cameraTopLeft = GetNodeOrNull<Marker2D>(CameraTopLeftPath);
         var cameraBottomRight = GetNodeOrNull<Marker2D>(CameraBottomRightPath);
         var zombieSpawner = GetNodeOrNull<ZombieSpawner>(ZombieSpawnerPath);
+        _moneyWallet = GetNodeOrNull<MoneyWallet>(MoneyWalletPath);
+
+        var profile = AppServices.Instance?.PlayerProfiles.GetOrCreate();
+        if (_moneyWallet is not null && profile is not null)
+        {
+            _moneyWallet.SetBalance(profile.TotalCurrency);
+        }
 
         if (player is null || playerSpawn is null)
         {
@@ -54,7 +70,32 @@ public partial class GameplayRoot : Node2D
         }
 
         ConfigureCamera(playerCamera, cameraTopLeft, cameraBottomRight, CameraZoom);
-        zombieSpawner?.SpawnInitialWave(player);
+
+        if (zombieSpawner is not null)
+        {
+            zombieSpawner.ZombieSpawned += RegisterZombieKillReward;
+            zombieSpawner.SpawnInitialWave(player);
+        }
+    }
+
+    public override void _ExitTree()
+    {
+        var zombieSpawner = GetNodeOrNull<ZombieSpawner>(ZombieSpawnerPath);
+        if (zombieSpawner is not null)
+        {
+            zombieSpawner.ZombieSpawned -= RegisterZombieKillReward;
+        }
+    }
+
+    private void RegisterZombieKillReward(ZombieController zombie)
+    {
+        zombie.HealthDepleted += OnZombieKilled;
+    }
+
+    private void OnZombieKilled()
+    {
+        _moneyWallet?.AddMoney(MoneyPerZombieKill);
+        AppServices.Instance?.PlayerProfiles.AddCurrency(MoneyPerZombieKill);
     }
 
     private static void ConfigureCamera(

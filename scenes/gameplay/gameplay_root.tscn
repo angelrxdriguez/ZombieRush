@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/maps/district_01.tscn" id="1_mj3nf"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="2_m33cf"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="3_fv4nf"]
 [ext_resource type="Script" path="res://src/features/gameplay/GameplayRoot.cs" id="4_gfd0v"]
 [ext_resource type="Script" path="res://src/features/zombies/ZombieSpawner.cs" id="5_l3s5y"]
+[ext_resource type="Script" path="res://src/features/economy/MoneyWallet.cs" id="6_txqj8"]
 
 [node name="GameplayRoot" type="Node2D"]
 script = ExtResource("4_gfd0v")
@@ -19,5 +20,10 @@ script = ExtResource("4_gfd0v")
 
 [node name="ZombieSpawner" type="Node" parent="Actors"]
 script = ExtResource("5_l3s5y")
+
+[node name="Economy" type="Node" parent="."]
+
+[node name="MoneyWallet" type="Node" parent="Economy"]
+script = ExtResource("6_txqj8")
 
 [node name="Hud" parent="." instance=ExtResource("2_m33cf")]

@@ -1,11 +1,12 @@
 using System;
 using Godot;
+using ZombieRush.Features.Player;
 
 namespace ZombieRush.Features.Zombies;
 
 public partial class ZombieController : CharacterBody2D
 {
-    private const string ZombieGroup = "zombies";
+    public const string ZombieGroup = "zombies";
     private const string VisualNodePath = "Visual";
     private const string HealthBarPath = "HealthBarAnchor/HealthBar";
 
@@ -21,6 +22,15 @@ public partial class ZombieController : CharacterBody2D
     [Export(PropertyHint.Range, "1,500,1")]
     public int MaxHealth { get; set; } = 60;
 
+    [Export(PropertyHint.Range, "1,100,1")]
+    public int ContactDamage { get; set; } = 10;
+
+    [Export(PropertyHint.Range, "16,96,2")]
+    public float ContactDamageRange { get; set; } = 56.0f;
+
+    [Export(PropertyHint.Range, "0.1,3.0,0.05")]
+    public float ContactDamageCooldownSeconds { get; set; } = 0.8f;
+
     public int CurrentHealth { get; private set; }
 
     public bool IsAlive => CurrentHealth > 0;
@@ -32,6 +42,7 @@ public partial class ZombieController : CharacterBody2D
     private Node2D? _target;
     private Node2D? _visual;
     private ProgressBar? _healthBar;
+    private double _contactDamageCooldownRemaining;
 
     public override void _EnterTree()
     {
@@ -115,6 +126,8 @@ public partial class ZombieController : CharacterBody2D
 
     public override void _PhysicsProcess(double delta)
     {
+        TickContactDamageCooldown(delta);
+
         if (!IsAlive)
         {
             Velocity = Vector2.Zero;
@@ -134,6 +147,7 @@ public partial class ZombieController : CharacterBody2D
         {
             Velocity = Vector2.Zero;
             MoveAndSlide();
+            TryDamageTarget();
             return;
         }
 
@@ -152,6 +166,7 @@ public partial class ZombieController : CharacterBody2D
 
         Velocity = direction * MoveSpeed;
         MoveAndSlide();
+        TryDamageTarget();
 
         if (Velocity.LengthSquared() > 0.0001f)
         {
@@ -211,6 +226,34 @@ public partial class ZombieController : CharacterBody2D
         }
 
         return averageRepel;
+    }
+
+    private void TickContactDamageCooldown(double delta)
+    {
+        if (_contactDamageCooldownRemaining > 0.0)
+        {
+            _contactDamageCooldownRemaining = Math.Max(0.0, _contactDamageCooldownRemaining - delta);
+        }
+    }
+
+    private void TryDamageTarget()
+    {
+        if (_contactDamageCooldownRemaining > 0.0 ||
+            _target is not PlayerController player ||
+            !player.IsAlive ||
+            ContactDamage <= 0)
+        {
+            return;
+        }
+
+        var contactRangeSquared = ContactDamageRange * ContactDamageRange;
+        if (GlobalPosition.DistanceSquaredTo(player.GlobalPosition) > contactRangeSquared)
+        {
+            return;
+        }
+
+        player.ApplyDamage(ContactDamage);
+        _contactDamageCooldownRemaining = ContactDamageCooldownSeconds;
     }
 
     private void EmitHealthChanged()

@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 namespace ZombieRush.Features.Zombies;
@@ -17,6 +18,8 @@ public partial class ZombieSpawner : Node
 
     [Export(PropertyHint.Range, "1,200,1")]
     public int InitialSpawnCount { get; set; } = 5;
+
+    public event Action<ZombieController>? ZombieSpawned;
 
     private bool _hasSpawnedInitialWave;
 
@@ -60,6 +63,7 @@ public partial class ZombieSpawner : Node
             zombie.GlobalPosition = spawnPoint.GlobalPosition;
             zombie.SetTarget(target);
             zombieContainer.AddChild(zombie);
+            ZombieSpawned?.Invoke(zombie);
         }
 
         _hasSpawnedInitialWave = true;

@@ -1,6 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://src/features/player/PlayerController.cs" id="1_cxu6d"]
+[ext_resource type="Script" path="res://src/features/weapons/PlayerWeaponInventory.cs" id="2_3ikcu"]
+[ext_resource type="Script" path="res://src/features/weapons/SwordWeapon.cs" id="3_b21d4"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_mg8br"]
 radius = 24.0
@@ -26,6 +28,13 @@ polygon = PackedVector2Array(0, -30, 12, -8, -12, -8)
 [node name="Backpack" type="Polygon2D" parent="Visual"]
 color = Color(0.0784314, 0.145098, 0.219608, 1)
 polygon = PackedVector2Array(-12, 14, 12, 14, 14, 26, -14, 26)
+
+[node name="Weapons" type="Node2D" parent="."]
+script = ExtResource("2_3ikcu")
+
+[node name="Sword" type="Node2D" parent="Weapons"]
+z_index = 10
+script = ExtResource("3_b21d4")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 enabled = true
