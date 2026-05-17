@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 namespace ZombieRush.Features.Zombies;
@@ -5,6 +6,8 @@ namespace ZombieRush.Features.Zombies;
 public partial class ZombieController : CharacterBody2D
 {
     private const string ZombieGroup = "zombies";
+    private const string VisualNodePath = "Visual";
+    private const string HealthBarPath = "HealthBarAnchor/HealthBar";
 
     [Export(PropertyHint.Range, "60,360,10")]
     public float MoveSpeed { get; set; } = 170.0f;
@@ -15,11 +18,39 @@ public partial class ZombieController : CharacterBody2D
     [Export(PropertyHint.Range, "0.1,4.0,0.1")]
     public float SeparationWeight { get; set; } = 1.25f;
 
+    [Export(PropertyHint.Range, "1,500,1")]
+    public int MaxHealth { get; set; } = 60;
+
+    public int CurrentHealth { get; private set; }
+
+    public bool IsAlive => CurrentHealth > 0;
+
+    public event Action<int, int>? HealthChanged;
+
+    public event Action? HealthDepleted;
+
     private Node2D? _target;
+    private Node2D? _visual;
+    private ProgressBar? _healthBar;
 
     public override void _EnterTree()
     {
         AddToGroup(ZombieGroup);
+    }
+
+    public override void _Ready()
+    {
+        _visual = GetNodeOrNull<Node2D>(VisualNodePath);
+        _healthBar = GetNodeOrNull<ProgressBar>(HealthBarPath);
+
+        if (_visual is not null)
+        {
+            Rotation = 0.0f;
+        }
+
+        MaxHealth = Math.Max(1, MaxHealth);
+        CurrentHealth = MaxHealth;
+        EmitHealthChanged();
     }
 
     public void SetTarget(Node2D target)
@@ -27,8 +58,70 @@ public partial class ZombieController : CharacterBody2D
         _target = target;
     }
 
+    public int ApplyDamage(int amount)
+    {
+        if (amount <= 0 || !IsAlive)
+        {
+            return 0;
+        }
+
+        var nextHealth = Math.Max(0, CurrentHealth - amount);
+        var appliedDamage = CurrentHealth - nextHealth;
+        if (appliedDamage == 0)
+        {
+            return 0;
+        }
+
+        CurrentHealth = nextHealth;
+        EmitHealthChanged();
+
+        if (CurrentHealth == 0)
+        {
+            HealthDepleted?.Invoke();
+        }
+
+        return appliedDamage;
+    }
+
+    public int Heal(int amount)
+    {
+        if (amount <= 0)
+        {
+            return 0;
+        }
+
+        var nextHealth = Math.Min(MaxHealth, CurrentHealth + amount);
+        var healedAmount = nextHealth - CurrentHealth;
+        if (healedAmount == 0)
+        {
+            return 0;
+        }
+
+        CurrentHealth = nextHealth;
+        EmitHealthChanged();
+        return healedAmount;
+    }
+
+    public void RestoreFullHealth()
+    {
+        if (CurrentHealth == MaxHealth)
+        {
+            return;
+        }
+
+        CurrentHealth = MaxHealth;
+        EmitHealthChanged();
+    }
+
     public override void _PhysicsProcess(double delta)
     {
+        if (!IsAlive)
+        {
+            Velocity = Vector2.Zero;
+            MoveAndSlide();
+            return;
+        }
+
         if (_target is null || !IsInstanceValid(_target))
         {
             Velocity = Vector2.Zero;
@@ -62,7 +155,15 @@ public partial class ZombieController : CharacterBody2D
 
         if (Velocity.LengthSquared() > 0.0001f)
         {
-            Rotation = Velocity.Normalized().Angle() + Mathf.Pi / 2.0f;
+            var facingRotation = Velocity.Normalized().Angle() + Mathf.Pi / 2.0f;
+            if (_visual is not null)
+            {
+                _visual.Rotation = facingRotation;
+            }
+            else
+            {
+                Rotation = facingRotation;
+            }
         }
     }
 
@@ -110,5 +211,22 @@ public partial class ZombieController : CharacterBody2D
         }
 
         return averageRepel;
+    }
+
+    private void EmitHealthChanged()
+    {
+        UpdateHealthBar();
+        HealthChanged?.Invoke(CurrentHealth, MaxHealth);
+    }
+
+    private void UpdateHealthBar()
+    {
+        if (_healthBar is null)
+        {
+            return;
+        }
+
+        _healthBar.MaxValue = MaxHealth;
+        _healthBar.Value = Mathf.Clamp(CurrentHealth, 0, MaxHealth);
     }
 }

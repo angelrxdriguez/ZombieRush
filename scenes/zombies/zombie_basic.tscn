@@ -11,6 +11,18 @@ collision_mask = 7
 motion_mode = 1
 script = ExtResource("1_bvldj")
 
+[node name="HealthBarAnchor" type="Node2D" parent="."]
+position = Vector2(0, -42)
+
+[node name="HealthBar" type="ProgressBar" parent="HealthBarAnchor"]
+offset_left = -26.0
+offset_top = -6.0
+offset_right = 26.0
+offset_bottom = 2.0
+mouse_filter = 2
+show_percentage = false
+value = 60.0
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_h7h7r")
 

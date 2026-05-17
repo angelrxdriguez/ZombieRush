@@ -45,7 +45,6 @@ Usar esta estructura por defecto salvo que haya una razon tecnica clara para cam
 Regla para escalar mapas:
 - Cada mapa nuevo deberia anadir normalmente `assets/maps/<map-id>/...` y `scenes/maps/<map-id>.tscn`.
 - La logica reutilizable debe quedarse en `src/features/maps` o en otras carpetas compartidas.
-- Evitar codigo C# especifico de mapa salvo que el mapa tenga comportamiento realmente unico.
 
 ## Reglas de persistencia
 
