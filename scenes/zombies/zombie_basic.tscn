@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/features/zombies/ZombieController.cs" id="1_bvldj"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_h7h7r"]
+radius = 22.0
+
+[node name="ZombieBasic" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 7
+motion_mode = 1
+script = ExtResource("1_bvldj")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_h7h7r")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Body" type="Polygon2D" parent="Visual"]
+color = Color(0.305882, 0.47451, 0.247059, 1)
+polygon = PackedVector2Array(-16, -14, 16, -14, 20, 18, -20, 18)
+
+[node name="FaceDirection" type="Polygon2D" parent="Visual"]
+color = Color(0.560784, 0.705882, 0.501961, 1)
+polygon = PackedVector2Array(0, -28, 11, -8, -11, -8)

@@ -1,0 +1,12 @@
+.godot/
+.mono/
+.vs/
+bin/
+obj/
+.idea/
+*.user
+*.tmp
+*.log
+Thumbs.db
+.DS_Store
+
