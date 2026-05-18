@@ -55,19 +55,27 @@ public partial class PlayerWeaponInventory : Node2D
         _subscribedWeaponIds.Clear();
     }
 
-    public override void _UnhandledInput(InputEvent @event)
+    public override void _Input(InputEvent @event)
     {
-        if (@event is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } mouseEvent &&
-            !mouseEvent.DoubleClick)
+        if (@event is not InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } mouseEvent ||
+            mouseEvent.DoubleClick)
         {
-            if (TryUseActiveWeapon())
-            {
-                GetViewport().SetInputAsHandled();
-            }
-
             return;
         }
 
+        if (GetViewport().GuiGetHoveredControl() is BaseButton)
+        {
+            return;
+        }
+
+        if (TryUseActiveWeapon())
+        {
+            GetViewport().SetInputAsHandled();
+        }
+    }
+
+    public override void _UnhandledInput(InputEvent @event)
+    {
         if (@event is not InputEventKey { Pressed: true, Echo: false } keyEvent)
         {
             return;
