@@ -36,6 +36,7 @@ public partial class Glock9MmWeapon : PlayerWeapon
     {
         WeaponId = "glock_9mm";
         DisplayName = "Glock 9MM";
+        PurchasePrice = 700;
         CooldownSeconds = 0.18f;
     }
 
@@ -85,6 +86,36 @@ public partial class Glock9MmWeapon : PlayerWeapon
         return _reloadTimeRemaining > 0.0
             ? "Recargando"
             : $"{_bulletsInMagazine}/{_reserveBullets}";
+    }
+
+    public override bool SupportsAmmoRestock => true;
+
+    public override bool IsAmmoFull()
+    {
+        InitializeAmmo();
+        return _reloadTimeRemaining <= 0.0 &&
+            _bulletsInMagazine >= MagazineSize &&
+            _reserveBullets >= InitialReserveBullets;
+    }
+
+    public override bool RestockAmmo()
+    {
+        InitializeAmmo();
+
+        var ammoChanged = _reloadTimeRemaining > 0.0 ||
+            _bulletsInMagazine != MagazineSize ||
+            _reserveBullets != InitialReserveBullets;
+
+        _reloadTimeRemaining = 0.0;
+        _bulletsInMagazine = MagazineSize;
+        _reserveBullets = InitialReserveBullets;
+
+        if (ammoChanged)
+        {
+            EmitStateChanged();
+        }
+
+        return ammoChanged;
     }
 
     protected override bool Use(PlayerController owner, Vector2 direction)

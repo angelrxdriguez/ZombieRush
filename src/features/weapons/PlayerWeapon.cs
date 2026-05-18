@@ -12,6 +12,9 @@ public abstract partial class PlayerWeapon : Node2D
     [Export]
     public string DisplayName { get; set; } = "Weapon";
 
+    [Export(PropertyHint.Range, "0,99999,1")]
+    public int PurchasePrice { get; set; }
+
     [Export(PropertyHint.Range, "0.05,5.0,0.05")]
     public float CooldownSeconds { get; set; } = 0.5f;
 
@@ -59,6 +62,23 @@ public abstract partial class PlayerWeapon : Node2D
     public virtual string GetHudDetail()
     {
         return string.Empty;
+    }
+
+    public int GetAmmoRefillPrice()
+    {
+        return Math.Max(0, PurchasePrice / 2);
+    }
+
+    public virtual bool SupportsAmmoRestock => false;
+
+    public virtual bool IsAmmoFull()
+    {
+        return true;
+    }
+
+    public virtual bool RestockAmmo()
+    {
+        return false;
     }
 
     protected void EmitStateChanged()

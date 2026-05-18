@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using ZombieRush.Autoload;
+using ZombieRush.Features.Economy;
 using ZombieRush.Features.Player;
 
 namespace ZombieRush.Features.Weapons;
@@ -16,9 +18,13 @@ public partial class PlayerWeaponInventory : Node2D
     [Export(PropertyHint.Range, "1,6,1")]
     public int MaxSlots { get; set; } = DefaultSlotCount;
 
+    [Export]
+    public NodePath MoneyWalletPath { get; set; } = "../../../Economy/MoneyWallet";
+
     private readonly List<PlayerWeapon?> _weaponSlots = [];
     private readonly HashSet<ulong> _subscribedWeaponIds = [];
     private PlayerController? _owner;
+    private MoneyWallet? _moneyWallet;
     private int _activeWeaponIndex;
 
     public PlayerWeapon? ActiveWeapon =>
@@ -35,6 +41,7 @@ public partial class PlayerWeaponInventory : Node2D
     public override void _Ready()
     {
         _owner = GetNodeOrNull<PlayerController>(OwnerPath);
+        ResolveMoneyWallet();
         RefreshWeapons();
     }
 
@@ -87,6 +94,12 @@ public partial class PlayerWeaponInventory : Node2D
         }
 
         if (keyEvent.Keycode == Key.R && TryReloadActiveWeapon())
+        {
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+
+        if (keyEvent.Keycode == Key.B && TryPurchaseActiveWeaponAmmo())
         {
             GetViewport().SetInputAsHandled();
         }
@@ -168,6 +181,52 @@ public partial class PlayerWeaponInventory : Node2D
         return _owner is not null && weapon is not null && weapon.TryReload(_owner);
     }
 
+    public bool TryPurchaseActiveWeaponAmmo()
+    {
+        var weapon = ActiveWeapon;
+        if (weapon is null || !weapon.SupportsAmmoRestock || weapon.IsAmmoFull())
+        {
+            return false;
+        }
+
+        var refillPrice = weapon.GetAmmoRefillPrice();
+        if (refillPrice <= 0)
+        {
+            return weapon.RestockAmmo();
+        }
+
+        ResolveMoneyWallet();
+        if (_moneyWallet is null || !_moneyWallet.TrySpend(refillPrice))
+        {
+            return false;
+        }
+
+        var spentPersistentCurrency = false;
+        var profileRepository = AppServices.Instance?.PlayerProfiles;
+        if (profileRepository is not null)
+        {
+            spentPersistentCurrency = profileRepository.TrySpendCurrency(refillPrice);
+            if (!spentPersistentCurrency)
+            {
+                _moneyWallet.AddMoney(refillPrice);
+                return false;
+            }
+        }
+
+        if (weapon.RestockAmmo())
+        {
+            return true;
+        }
+
+        _moneyWallet.AddMoney(refillPrice);
+        if (spentPersistentCurrency)
+        {
+            profileRepository?.AddCurrency(refillPrice);
+        }
+
+        return false;
+    }
+
     private void RefreshWeapons()
     {
         EnsureSlotCount();
@@ -213,6 +272,17 @@ public partial class PlayerWeaponInventory : Node2D
         }
 
         EmitInventoryChanged();
+    }
+
+    private void ResolveMoneyWallet()
+    {
+        if (_moneyWallet is not null && IsInstanceValid(_moneyWallet))
+        {
+            return;
+        }
+
+        _moneyWallet = GetNodeOrNull<MoneyWallet>(MoneyWalletPath);
+        _moneyWallet ??= GetTree()?.CurrentScene?.GetNodeOrNull<MoneyWallet>("Economy/MoneyWallet");
     }
 
     private void ReplaceSlotWeapon(int slotIndex, PlayerWeapon weapon)

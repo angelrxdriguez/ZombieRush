@@ -97,4 +97,32 @@ public sealed class PlayerProfileRepository
 
         return updateCommand.ExecuteNonQuery() > 0;
     }
+
+    public PlayerProfile RegisterReachedWave(int waveNumber)
+    {
+        if (waveNumber <= 0)
+        {
+            return GetOrCreate();
+        }
+
+        GetOrCreate();
+
+        var nowUtc = DateTime.UtcNow.ToString("O");
+
+        using var updateCommand = _connection.CreateCommand();
+        updateCommand.CommandText = """
+            UPDATE player_profile
+            SET highest_wave = CASE
+                    WHEN highest_wave < $waveNumber THEN $waveNumber
+                    ELSE highest_wave
+                END,
+                updated_utc = $updatedUtc
+            WHERE id = 1;
+            """;
+        updateCommand.Parameters.AddWithValue("$waveNumber", waveNumber);
+        updateCommand.Parameters.AddWithValue("$updatedUtc", nowUtc);
+        updateCommand.ExecuteNonQuery();
+
+        return GetOrCreate();
+    }
 }

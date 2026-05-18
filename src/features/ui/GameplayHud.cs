@@ -514,6 +514,15 @@ public partial class GameplayHud : CanvasLayer
         }
 
         var hudDetail = weapon.GetHudDetail();
+        if (isActive && weapon.SupportsAmmoRestock && !weapon.IsAmmoFull())
+        {
+            var refillCost = weapon.GetAmmoRefillPrice();
+            var refillHint = $"B ${refillCost}";
+            hudDetail = string.IsNullOrWhiteSpace(hudDetail)
+                ? refillHint
+                : $"{hudDetail} | {refillHint}";
+        }
+
         button.Text = string.IsNullOrWhiteSpace(hudDetail)
             ? $"{slotIndex + 1} {weapon.DisplayName}"
             : $"{slotIndex + 1} {weapon.DisplayName} {hudDetail}";

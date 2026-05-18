@@ -19,68 +19,165 @@ public partial class ZombieSpawner : Node
     [Export(PropertyHint.Range, "1,200,1")]
     public int InitialSpawnCount { get; set; } = 5;
 
+    [Export(PropertyHint.Range, "0,200,1")]
+    public int ZombiesAddedPerWave { get; set; } = 5;
+
+    [Export(PropertyHint.Range, "1,200,1")]
+    public int SpawnBatchSize { get; set; } = 5;
+
+    [Export(PropertyHint.Range, "0.5,60.0,0.5")]
+    public float SpawnBatchIntervalSeconds { get; set; } = 10.0f;
+
     public event Action<ZombieController>? ZombieSpawned;
 
-    private bool _hasSpawnedInitialWave;
+    public event Action<int, int>? WaveStarted;
+
+    private readonly Godot.Collections.Array<Marker2D> _spawnPoints = [];
+    private Node2D? _target;
+    private Node? _zombieContainer;
+    private bool _wavesStarted;
+    private int _nextSpawnPointIndex;
+    private int _currentWave;
+    private int _remainingToSpawnInWave;
+    private int _aliveInWave;
+    private double _spawnCooldownRemaining;
 
     public override void _Ready()
     {
         ZombieScene ??= ResourceLoader.Load<PackedScene>(DefaultZombieScenePath);
     }
 
+    public override void _Process(double delta)
+    {
+        if (!_wavesStarted)
+        {
+            return;
+        }
+
+        if (_remainingToSpawnInWave > 0)
+        {
+            _spawnCooldownRemaining = Math.Max(0.0, _spawnCooldownRemaining - delta);
+            if (_spawnCooldownRemaining <= 0.0)
+            {
+                SpawnBatch();
+                _spawnCooldownRemaining = Math.Max(0.5f, SpawnBatchIntervalSeconds);
+            }
+        }
+
+        if (_remainingToSpawnInWave == 0 && _aliveInWave == 0)
+        {
+            StartNextWave();
+        }
+    }
+
     public void SpawnInitialWave(Node2D target)
     {
-        if (_hasSpawnedInitialWave)
+        StartWaves(target);
+    }
+
+    public void StartWaves(Node2D target)
+    {
+        if (_wavesStarted)
         {
             return;
         }
 
-        if (ZombieScene is null)
+        _target = target;
+
+        if (!ResolveSpawnContext())
         {
-            GD.PushWarning("ZombieSpawner no tiene escena de zombie asignada.");
             return;
         }
 
-        var spawnPointsRoot = GetNodeOrNull<Node>(SpawnPointsPath);
-        var zombieContainer = GetNodeOrNull<Node>(ZombieContainerPath);
-        if (spawnPointsRoot is null || zombieContainer is null)
+        _wavesStarted = true;
+        StartNextWave();
+    }
+
+    private void StartNextWave()
+    {
+        _currentWave++;
+
+        var baseCount = Math.Max(1, InitialSpawnCount);
+        var addedPerWave = Math.Max(0, ZombiesAddedPerWave);
+        var zombiesThisWave = baseCount + ((_currentWave - 1) * addedPerWave);
+
+        _remainingToSpawnInWave = zombiesThisWave;
+        _aliveInWave = 0;
+        _spawnCooldownRemaining = Math.Max(0.5f, SpawnBatchIntervalSeconds);
+
+        WaveStarted?.Invoke(_currentWave, zombiesThisWave);
+    }
+
+    private void SpawnBatch()
+    {
+        if (_target is null || !IsInstanceValid(_target) ||
+            _zombieContainer is null || !IsInstanceValid(_zombieContainer) ||
+            ZombieScene is null ||
+            _spawnPoints.Count == 0 ||
+            _remainingToSpawnInWave <= 0)
         {
-            GD.PushWarning("ZombieSpawner no encontro puntos de spawn o contenedor.");
             return;
         }
 
-        var spawnPoints = GetSpawnPoints(spawnPointsRoot);
-        if (spawnPoints.Count == 0)
-        {
-            GD.PushWarning("ZombieSpawner no encontro Marker2D en ZombieSpawns.");
-            return;
-        }
+        var batchSize = Math.Max(1, SpawnBatchSize);
+        var spawnCount = Math.Min(batchSize, _remainingToSpawnInWave);
 
-        for (var i = 0; i < InitialSpawnCount; i++)
+        for (var i = 0; i < spawnCount; i++)
         {
-            var spawnPoint = spawnPoints[i % spawnPoints.Count];
+            var spawnPoint = _spawnPoints[_nextSpawnPointIndex % _spawnPoints.Count];
+            _nextSpawnPointIndex++;
+
             var zombie = ZombieScene.Instantiate<ZombieController>();
             zombie.GlobalPosition = spawnPoint.GlobalPosition;
-            zombie.SetTarget(target);
-            zombieContainer.AddChild(zombie);
+            zombie.SetTarget(_target);
+            zombie.HealthDepleted += OnWaveZombieDepleted;
+            _zombieContainer.AddChild(zombie);
+
+            _aliveInWave++;
             ZombieSpawned?.Invoke(zombie);
         }
 
-        _hasSpawnedInitialWave = true;
+        _remainingToSpawnInWave -= spawnCount;
     }
 
-    private static Godot.Collections.Array<Marker2D> GetSpawnPoints(Node spawnPointsRoot)
+    private bool ResolveSpawnContext()
     {
-        var points = new Godot.Collections.Array<Marker2D>();
+        if (ZombieScene is null)
+        {
+            GD.PushWarning("ZombieSpawner no tiene escena de zombie asignada.");
+            return false;
+        }
+
+        var spawnPointsRoot = GetNodeOrNull<Node>(SpawnPointsPath);
+        _zombieContainer = GetNodeOrNull<Node>(ZombieContainerPath);
+
+        if (spawnPointsRoot is null || _zombieContainer is null)
+        {
+            GD.PushWarning("ZombieSpawner no encontro puntos de spawn o contenedor.");
+            return false;
+        }
+
+        _spawnPoints.Clear();
 
         foreach (var child in spawnPointsRoot.GetChildren())
         {
             if (child is Marker2D marker)
             {
-                points.Add(marker);
+                _spawnPoints.Add(marker);
             }
         }
 
-        return points;
+        if (_spawnPoints.Count == 0)
+        {
+            GD.PushWarning("ZombieSpawner no encontro Marker2D en ZombieSpawns.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void OnWaveZombieDepleted()
+    {
+        _aliveInWave = Math.Max(0, _aliveInWave - 1);
     }
 }

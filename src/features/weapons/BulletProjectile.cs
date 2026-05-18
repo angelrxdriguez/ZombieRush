@@ -43,7 +43,7 @@ public partial class BulletProjectile : Node2D
 
             if (hit["collider"].AsGodotObject() is ZombieController zombie)
             {
-                zombie.ApplyDamage(_damage);
+                zombie.ApplyDamage(_damage, GlobalPosition);
             }
 
             QueueFree();

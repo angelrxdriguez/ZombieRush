@@ -9,6 +9,7 @@ public partial class ZombieController : CharacterBody2D
     public const string ZombieGroup = "zombies";
     private const string VisualNodePath = "Visual";
     private const string HealthBarPath = "HealthBarAnchor/HealthBar";
+    private const string DefaultDamageImpactScenePath = "res://scenes/vfx/blood_impact_fx.tscn";
 
     [Export(PropertyHint.Range, "60,360,10")]
     public float MoveSpeed { get; set; } = 170.0f;
@@ -30,6 +31,9 @@ public partial class ZombieController : CharacterBody2D
 
     [Export(PropertyHint.Range, "0.1,3.0,0.05")]
     public float ContactDamageCooldownSeconds { get; set; } = 0.8f;
+
+    [Export]
+    public PackedScene? DamageImpactScene { get; set; }
 
     public int CurrentHealth { get; private set; }
 
@@ -61,6 +65,7 @@ public partial class ZombieController : CharacterBody2D
 
         MaxHealth = Math.Max(1, MaxHealth);
         CurrentHealth = MaxHealth;
+        DamageImpactScene ??= ResourceLoader.Load<PackedScene>(DefaultDamageImpactScenePath);
         EmitHealthChanged();
     }
 
@@ -69,7 +74,7 @@ public partial class ZombieController : CharacterBody2D
         _target = target;
     }
 
-    public int ApplyDamage(int amount)
+    public int ApplyDamage(int amount, Vector2? impactPosition = null)
     {
         if (amount <= 0 || !IsAlive)
         {
@@ -84,6 +89,7 @@ public partial class ZombieController : CharacterBody2D
         }
 
         CurrentHealth = nextHealth;
+        SpawnDamageImpact(impactPosition ?? GlobalPosition);
         EmitHealthChanged();
 
         if (CurrentHealth == 0)
@@ -260,6 +266,24 @@ public partial class ZombieController : CharacterBody2D
     {
         UpdateHealthBar();
         HealthChanged?.Invoke(CurrentHealth, MaxHealth);
+    }
+
+    private void SpawnDamageImpact(Vector2 impactPosition)
+    {
+        if (DamageImpactScene?.Instantiate() is not Node2D impactFx)
+        {
+            return;
+        }
+
+        var parent = GetTree()?.CurrentScene ?? GetParent();
+        if (parent is null)
+        {
+            impactFx.QueueFree();
+            return;
+        }
+
+        parent.AddChild(impactFx);
+        impactFx.GlobalPosition = impactPosition;
     }
 
     private void UpdateHealthBar()

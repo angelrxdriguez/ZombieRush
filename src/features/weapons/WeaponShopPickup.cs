@@ -155,6 +155,7 @@ public partial class WeaponShopPickup : Node2D
             return;
         }
 
+        weapon.PurchasePrice = Price;
         _inventory.EquipWeapon(weapon, PreferredSlotIndex);
         _isSold = true;
         Visible = false;

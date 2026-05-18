@@ -74,7 +74,8 @@ public partial class GameplayRoot : Node2D
         if (zombieSpawner is not null)
         {
             zombieSpawner.ZombieSpawned += RegisterZombieKillReward;
-            zombieSpawner.SpawnInitialWave(player);
+            zombieSpawner.WaveStarted += OnWaveStarted;
+            zombieSpawner.StartWaves(player);
         }
     }
 
@@ -84,6 +85,7 @@ public partial class GameplayRoot : Node2D
         if (zombieSpawner is not null)
         {
             zombieSpawner.ZombieSpawned -= RegisterZombieKillReward;
+            zombieSpawner.WaveStarted -= OnWaveStarted;
         }
     }
 
@@ -96,6 +98,12 @@ public partial class GameplayRoot : Node2D
     {
         _moneyWallet?.AddMoney(MoneyPerZombieKill);
         AppServices.Instance?.PlayerProfiles.AddCurrency(MoneyPerZombieKill);
+    }
+
+    private void OnWaveStarted(int waveNumber, int zombiesInWave)
+    {
+        GD.Print($"Oleada {waveNumber} iniciada ({zombiesInWave} zombies).");
+        AppServices.Instance?.PlayerProfiles.RegisterReachedWave(waveNumber);
     }
 
     private static void ConfigureCamera(
