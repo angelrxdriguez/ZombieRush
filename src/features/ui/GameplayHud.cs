@@ -7,6 +7,8 @@ namespace ZombieRush.Features.UI;
 
 public partial class GameplayHud : CanvasLayer
 {
+    private const string BootstrapScenePath = "res://scenes/bootstrap/bootstrap.tscn";
+
     [Export]
     public NodePath PlayerPath { get; set; } = "../Actors/Player";
 
@@ -17,19 +19,37 @@ public partial class GameplayHud : CanvasLayer
     public NodePath MoneyWalletPath { get; set; } = "../Economy/MoneyWallet";
 
     [Export]
-    public NodePath MoneyTextPath { get; set; } = "Root/StatusPanel/Margin/Content/MoneyText";
+    public NodePath MoneyTextPath { get; set; } = "Root/StatusPanel/Margin/Content/MoneyRow/MoneyContent/MoneyText";
 
     [Export]
-    public NodePath PlayerHealthBarPath { get; set; } = "Root/StatusPanel/Margin/Content/PlayerHealthBar";
+    public NodePath SurvivalTimerTextPath { get; set; } = "Root/StatusPanel/Margin/Content/HeaderRow/TimeText";
 
     [Export]
-    public NodePath PlayerHealthTextPath { get; set; } = "Root/StatusPanel/Margin/Content/PlayerHealthText";
+    public NodePath PlayerHealthBarPath { get; set; } = "Root/StatusPanel/Margin/Content/PlayerSection/PlayerHealthBar";
 
     [Export]
-    public NodePath ZombieHealthBarPath { get; set; } = "Root/StatusPanel/Margin/Content/ZombieHealthBar";
+    public NodePath PlayerHealthTextPath { get; set; } = "Root/StatusPanel/Margin/Content/PlayerSection/PlayerMeta/PlayerHealthText";
 
     [Export]
-    public NodePath ZombieHealthTextPath { get; set; } = "Root/StatusPanel/Margin/Content/ZombieHealthText";
+    public NodePath ZombieHealthBarPath { get; set; } = "Root/StatusPanel/Margin/Content/ZombieSection/ZombieHealthBar";
+
+    [Export]
+    public NodePath ZombieHealthTextPath { get; set; } = "Root/StatusPanel/Margin/Content/ZombieSection/ZombieMeta/ZombieHealthText";
+
+    [Export]
+    public NodePath CrosshairCursorPath { get; set; } = "Root/CrosshairCursor";
+
+    [Export]
+    public NodePath PauseOverlayPath { get; set; } = "Root/PauseOverlay";
+
+    [Export]
+    public NodePath ResumeButtonPath { get; set; } = "Root/PauseOverlay/PausePanel/Margin/Content/ResumeButton";
+
+    [Export]
+    public NodePath PauseRestartButtonPath { get; set; } = "Root/PauseOverlay/PausePanel/Margin/Content/RestartButton";
+
+    [Export]
+    public NodePath PauseMainMenuButtonPath { get; set; } = "Root/PauseOverlay/PausePanel/Margin/Content/MainMenuButton";
 
     [Export]
     public NodePath GameOverOverlayPath { get; set; } = "Root/GameOverOverlay";
@@ -44,14 +64,21 @@ public partial class GameplayHud : CanvasLayer
     private Node? _zombieContainer;
     private MoneyWallet? _moneyWallet;
     private Label? _moneyText;
+    private Label? _survivalTimerText;
     private ProgressBar? _playerHealthBar;
     private Label? _playerHealthText;
     private ProgressBar? _zombieHealthBar;
     private Label? _zombieHealthText;
+    private Control? _crosshairCursor;
+    private Control? _pauseOverlay;
+    private Button? _resumeButton;
+    private Button? _pauseRestartButton;
+    private Button? _pauseMainMenuButton;
     private Control? _gameOverOverlay;
     private Label? _survivalTimeText;
     private Button? _restartButton;
     private double _survivalTimeSeconds;
+    private bool _isPauseMenuOpen;
     private bool _isGameOver;
 
     public override void _Ready()
@@ -59,13 +86,43 @@ public partial class GameplayHud : CanvasLayer
         ProcessMode = ProcessModeEnum.Always;
 
         _moneyText = GetNodeOrNull<Label>(MoneyTextPath);
+        _survivalTimerText = GetNodeOrNull<Label>(SurvivalTimerTextPath);
         _playerHealthBar = GetNodeOrNull<ProgressBar>(PlayerHealthBarPath);
         _playerHealthText = GetNodeOrNull<Label>(PlayerHealthTextPath);
         _zombieHealthBar = GetNodeOrNull<ProgressBar>(ZombieHealthBarPath);
         _zombieHealthText = GetNodeOrNull<Label>(ZombieHealthTextPath);
+        _crosshairCursor = GetNodeOrNull<Control>(CrosshairCursorPath);
+        _pauseOverlay = GetNodeOrNull<Control>(PauseOverlayPath);
+        _resumeButton = GetNodeOrNull<Button>(ResumeButtonPath);
+        _pauseRestartButton = GetNodeOrNull<Button>(PauseRestartButtonPath);
+        _pauseMainMenuButton = GetNodeOrNull<Button>(PauseMainMenuButtonPath);
         _gameOverOverlay = GetNodeOrNull<Control>(GameOverOverlayPath);
         _survivalTimeText = GetNodeOrNull<Label>(SurvivalTimeTextPath);
         _restartButton = GetNodeOrNull<Button>(RestartButtonPath);
+
+        if (_pauseOverlay is not null)
+        {
+            _pauseOverlay.ProcessMode = ProcessModeEnum.Always;
+            _pauseOverlay.Visible = false;
+        }
+
+        if (_resumeButton is not null)
+        {
+            _resumeButton.ProcessMode = ProcessModeEnum.Always;
+            _resumeButton.Pressed += ClosePauseMenu;
+        }
+
+        if (_pauseRestartButton is not null)
+        {
+            _pauseRestartButton.ProcessMode = ProcessModeEnum.Always;
+            _pauseRestartButton.Pressed += OnRestartPressed;
+        }
+
+        if (_pauseMainMenuButton is not null)
+        {
+            _pauseMainMenuButton.ProcessMode = ProcessModeEnum.Always;
+            _pauseMainMenuButton.Pressed += OnMainMenuPressed;
+        }
 
         if (_gameOverOverlay is not null)
         {
@@ -85,10 +142,26 @@ public partial class GameplayHud : CanvasLayer
         RefreshMoney();
         RefreshPlayerHealth();
         RefreshZombieHealth();
+        UpdateSurvivalTimerTexts();
     }
 
     public override void _ExitTree()
     {
+        if (_resumeButton is not null)
+        {
+            _resumeButton.Pressed -= ClosePauseMenu;
+        }
+
+        if (_pauseRestartButton is not null)
+        {
+            _pauseRestartButton.Pressed -= OnRestartPressed;
+        }
+
+        if (_pauseMainMenuButton is not null)
+        {
+            _pauseMainMenuButton.Pressed -= OnMainMenuPressed;
+        }
+
         if (_restartButton is not null)
         {
             _restartButton.Pressed -= OnRestartPressed;
@@ -100,9 +173,10 @@ public partial class GameplayHud : CanvasLayer
 
     public override void _Process(double delta)
     {
-        if (!_isGameOver)
+        if (!_isGameOver && !_isPauseMenuOpen && !GetTree().Paused)
         {
             _survivalTimeSeconds += delta;
+            UpdateSurvivalTimerTexts();
         }
 
         if (_player is null || !IsInstanceValid(_player))
@@ -123,6 +197,20 @@ public partial class GameplayHud : CanvasLayer
         }
 
         RefreshZombieHealth();
+    }
+
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (_isGameOver || IsEscapeReleased(@event))
+        {
+            return;
+        }
+
+        if (IsEscapePressed(@event))
+        {
+            TogglePauseMenu();
+            GetViewport().SetInputAsHandled();
+        }
     }
 
     private void ResolvePlayer()
@@ -212,7 +300,8 @@ public partial class GameplayHud : CanvasLayer
         }
 
         _isGameOver = true;
-        UpdateSurvivalTimeText();
+        UpdateSurvivalTimerTexts();
+        SetCrosshairVisible(false);
 
         if (_gameOverOverlay is not null)
         {
@@ -313,26 +402,103 @@ public partial class GameplayHud : CanvasLayer
     {
         if (_moneyText is not null)
         {
-            _moneyText.Text = $"Dinero: ${currentMoney}";
+            _moneyText.Text = $"${currentMoney}";
         }
     }
 
-    private void UpdateSurvivalTimeText()
+    private void UpdateSurvivalTimerTexts()
     {
-        if (_survivalTimeText is null)
+        var totalSeconds = Mathf.FloorToInt(_survivalTimeSeconds);
+        var minutes = totalSeconds / 60;
+        var seconds = totalSeconds % 60;
+        var formattedTime = $"{minutes:00}:{seconds:00}";
+
+        if (_survivalTimerText is not null)
+        {
+            _survivalTimerText.Text = formattedTime;
+        }
+
+        if (_survivalTimeText is not null)
+        {
+            _survivalTimeText.Text = $"Tiempo sobrevivido: {formattedTime}";
+        }
+    }
+
+    private void TogglePauseMenu()
+    {
+        if (_isPauseMenuOpen)
+        {
+            ClosePauseMenu();
+            return;
+        }
+
+        OpenPauseMenu();
+    }
+
+    private void OpenPauseMenu()
+    {
+        if (_isGameOver)
         {
             return;
         }
 
-        var totalSeconds = Mathf.FloorToInt(_survivalTimeSeconds);
-        var minutes = totalSeconds / 60;
-        var seconds = totalSeconds % 60;
-        _survivalTimeText.Text = $"Tiempo sobrevivido: {minutes:00}:{seconds:00}";
+        _isPauseMenuOpen = true;
+        if (_pauseOverlay is not null)
+        {
+            _pauseOverlay.Visible = true;
+        }
+
+        SetCrosshairVisible(false);
+        Input.MouseMode = Input.MouseModeEnum.Visible;
+        GetTree().Paused = true;
+        _resumeButton?.GrabFocus();
+    }
+
+    private void ClosePauseMenu()
+    {
+        if (!_isPauseMenuOpen)
+        {
+            return;
+        }
+
+        _isPauseMenuOpen = false;
+        if (_pauseOverlay is not null)
+        {
+            _pauseOverlay.Visible = false;
+        }
+
+        SetCrosshairVisible(true);
+        Input.MouseMode = Input.MouseModeEnum.Hidden;
+        GetTree().Paused = false;
+    }
+
+    private void SetCrosshairVisible(bool visible)
+    {
+        if (_crosshairCursor is not null)
+        {
+            _crosshairCursor.Visible = visible;
+        }
     }
 
     private void OnRestartPressed()
     {
         GetTree().Paused = false;
         GetTree().ReloadCurrentScene();
+    }
+
+    private void OnMainMenuPressed()
+    {
+        GetTree().Paused = false;
+        GetTree().ChangeSceneToFile(BootstrapScenePath);
+    }
+
+    private static bool IsEscapePressed(InputEvent @event)
+    {
+        return @event is InputEventKey { Pressed: true, Echo: false, Keycode: Key.Escape };
+    }
+
+    private static bool IsEscapeReleased(InputEvent @event)
+    {
+        return @event is InputEventKey { Pressed: false, Keycode: Key.Escape };
     }
 }
