@@ -1,32 +1,22 @@
 using Godot;
 using ZombieRush.Autoload;
 using ZombieRush.Features.Economy;
-using ZombieRush.Features.Player;
 
-namespace ZombieRush.Features.Weapons;
+namespace ZombieRush.Features.Player;
 
-public partial class WeaponShopPickup : Node2D
+public partial class MedkitPickup : Node2D
 {
     [Export]
-    public PackedScene? WeaponScene { get; set; }
+    public string DisplayName { get; set; } = "Botiquin";
 
-    [Export]
-    public string DisplayName { get; set; } = "Arma";
-
-    [Export(PropertyHint.Range, "0,99999,1")]
-    public int Price { get; set; } = 700;
-
-    [Export(PropertyHint.Range, "0,5,1")]
-    public int PreferredSlotIndex { get; set; } = 1;
+    [Export(PropertyHint.Range, "1,99999,1")]
+    public int HealPrice { get; set; } = 1500;
 
     [Export(PropertyHint.Range, "24,180,2")]
     public float PurchaseRadius { get; set; } = 78.0f;
 
     [Export]
     public NodePath PlayerPath { get; set; } = "../../../Actors/Player";
-
-    [Export]
-    public NodePath WeaponInventoryPath { get; set; } = "../../../Actors/Player/Weapons";
 
     [Export]
     public NodePath MoneyWalletPath { get; set; } = "../../../Economy/MoneyWallet";
@@ -41,14 +31,11 @@ public partial class WeaponShopPickup : Node2D
     public NodePath PromptLabelPath { get; set; } = "PromptLabel";
 
     private PlayerController? _player;
-    private PlayerWeaponInventory? _inventory;
     private MoneyWallet? _moneyWallet;
     private Label? _nameLabel;
     private Label? _priceLabel;
     private Label? _promptLabel;
     private bool _isPlayerInRange;
-    private bool _isWeaponOwned;
-    private string _shopWeaponId = string.Empty;
 
     public override void _Ready()
     {
@@ -58,8 +45,6 @@ public partial class WeaponShopPickup : Node2D
 
         UpdateStaticLabels();
         ResolveDependencies();
-        ResolveShopWeaponId();
-        _isWeaponOwned = IsWeaponOwned();
         UpdatePrompt();
     }
 
@@ -68,10 +53,8 @@ public partial class WeaponShopPickup : Node2D
         ResolveDependencies();
 
         var wasInRange = _isPlayerInRange;
-        var wasWeaponOwned = _isWeaponOwned;
         _isPlayerInRange = IsPlayerInPurchaseRange();
-        _isWeaponOwned = IsWeaponOwned();
-        if (wasInRange != _isPlayerInRange || wasWeaponOwned != _isWeaponOwned)
+        if (wasInRange != _isPlayerInRange)
         {
             UpdatePrompt();
             QueueRedraw();
@@ -86,57 +69,44 @@ public partial class WeaponShopPickup : Node2D
             return;
         }
 
-        TryPurchase();
+        TryHealPlayer();
         GetViewport().SetInputAsHandled();
     }
 
     public override void _Draw()
     {
         var accentColor = _isPlayerInRange
-            ? new Color(0.96f, 0.82f, 0.34f, 0.95f)
-            : new Color(0.72f, 0.74f, 0.66f, 0.72f);
+            ? new Color(0.36f, 0.9f, 0.58f, 0.95f)
+            : new Color(0.52f, 0.72f, 0.58f, 0.72f);
 
         DrawCircle(Vector2.Zero, PurchaseRadius, new Color(0.05f, 0.06f, 0.05f, 0.36f));
         DrawArc(Vector2.Zero, PurchaseRadius, 0.0f, Mathf.Pi * 2.0f, 48, accentColor, 3.0f, true);
-        DrawCircle(Vector2.Zero, 40.0f, new Color(0.035f, 0.041f, 0.037f, 0.9f));
-        DrawArc(Vector2.Zero, 40.0f, 0.0f, Mathf.Pi * 2.0f, 36, accentColor, 2.0f, true);
 
-        DrawRect(new Rect2(new Vector2(-26.0f, -8.0f), new Vector2(46.0f, 15.0f)), accentColor, true);
-        DrawRect(new Rect2(new Vector2(15.0f, -13.0f), new Vector2(20.0f, 7.0f)), accentColor, true);
-        DrawLine(new Vector2(-12.0f, 6.0f), new Vector2(-20.0f, 24.0f), accentColor, 8.0f, true);
-        DrawLine(new Vector2(-6.0f, 8.0f), new Vector2(2.0f, 23.0f), accentColor, 5.0f, true);
-        DrawLine(new Vector2(35.0f, -9.0f), new Vector2(48.0f, -9.0f), accentColor, 4.0f, true);
+        DrawRect(new Rect2(-24.0f, -17.0f, 48.0f, 34.0f), new Color(0.09f, 0.17f, 0.12f, 0.95f), true);
+        DrawRect(new Rect2(-24.0f, -17.0f, 48.0f, 34.0f), accentColor, false, 2.0f, true);
+        DrawRect(new Rect2(-7.0f, -10.0f, 14.0f, 20.0f), accentColor, true);
+        DrawRect(new Rect2(-13.0f, -4.0f, 26.0f, 8.0f), accentColor, true);
     }
 
-    private void TryPurchase()
+    private void TryHealPlayer()
     {
         ResolveDependencies();
 
-        if (_inventory is null || _moneyWallet is null || WeaponScene is null)
+        if (_player is null || _moneyWallet is null)
         {
             SetPromptText("No disponible");
             return;
         }
 
-        if (WeaponScene.Instantiate() is not PlayerWeapon weapon)
+        if (_player.CurrentHealth >= _player.MaxHealth)
         {
-            SetPromptText("Arma invalida");
+            SetPromptText("Vida al maximo");
             return;
         }
 
-        _shopWeaponId = weapon.WeaponId;
-        if (_inventory.HasWeapon(weapon.WeaponId))
+        if (!_moneyWallet.TrySpend(HealPrice))
         {
-            _isWeaponOwned = true;
-            weapon.Free();
-            SetPromptText("Ya comprada");
-            return;
-        }
-
-        if (!_moneyWallet.TrySpend(Price))
-        {
-            weapon.Free();
-            SetPromptText($"Faltan ${Price - _moneyWallet.CurrentMoney}");
+            SetPromptText($"Faltan ${HealPrice - _moneyWallet.CurrentMoney}");
             return;
         }
 
@@ -144,20 +114,29 @@ public partial class WeaponShopPickup : Node2D
         var profileRepository = AppServices.Instance?.PlayerProfiles;
         if (profileRepository is not null)
         {
-            spentPersistentCurrency = profileRepository.TrySpendCurrency(Price);
+            spentPersistentCurrency = profileRepository.TrySpendCurrency(HealPrice);
             if (!spentPersistentCurrency)
             {
-                _moneyWallet.AddMoney(Price);
-                weapon.Free();
+                _moneyWallet.AddMoney(HealPrice);
                 SetPromptText("Saldo no sincronizado");
                 return;
             }
         }
 
-        weapon.PurchasePrice = Price;
-        _inventory.EquipWeapon(weapon, PreferredSlotIndex);
-        _isWeaponOwned = true;
-        SetPromptText("Ya comprada");
+        var healedAmount = _player.Heal(_player.MaxHealth);
+        if (healedAmount <= 0)
+        {
+            _moneyWallet.AddMoney(HealPrice);
+            if (spentPersistentCurrency)
+            {
+                profileRepository?.AddCurrency(HealPrice);
+            }
+
+            SetPromptText("No se pudo curar");
+            return;
+        }
+
+        SetPromptText($"+{healedAmount} HP");
     }
 
     private void ResolveDependencies()
@@ -166,12 +145,6 @@ public partial class WeaponShopPickup : Node2D
         {
             _player = GetNodeOrNull<PlayerController>(PlayerPath);
             _player ??= GetTree()?.CurrentScene?.GetNodeOrNull<PlayerController>("Actors/Player");
-        }
-
-        if (_inventory is null || !IsInstanceValid(_inventory))
-        {
-            _inventory = GetNodeOrNull<PlayerWeaponInventory>(WeaponInventoryPath);
-            _inventory ??= GetTree()?.CurrentScene?.GetNodeOrNull<PlayerWeaponInventory>("Actors/Player/Weapons");
         }
 
         if (_moneyWallet is null || !IsInstanceValid(_moneyWallet))
@@ -200,19 +173,13 @@ public partial class WeaponShopPickup : Node2D
 
         if (_priceLabel is not null)
         {
-            _priceLabel.Text = $"${Price}";
+            _priceLabel.Text = $"${HealPrice}";
         }
     }
 
     private void UpdatePrompt()
     {
-        if (!_isPlayerInRange)
-        {
-            SetPromptText(string.Empty);
-            return;
-        }
-
-        SetPromptText(_isWeaponOwned ? "Ya comprada" : "E Comprar");
+        SetPromptText(_isPlayerInRange ? "E Curarse" : string.Empty);
     }
 
     private void SetPromptText(string text)
@@ -224,29 +191,5 @@ public partial class WeaponShopPickup : Node2D
 
         _promptLabel.Text = text;
         _promptLabel.Visible = !string.IsNullOrWhiteSpace(text);
-    }
-
-    private bool IsWeaponOwned()
-    {
-        return _inventory is not null &&
-            ResolveShopWeaponId() &&
-            _inventory.HasWeapon(_shopWeaponId);
-    }
-
-    private bool ResolveShopWeaponId()
-    {
-        if (!string.IsNullOrWhiteSpace(_shopWeaponId))
-        {
-            return true;
-        }
-
-        if (WeaponScene is null || WeaponScene.Instantiate() is not PlayerWeapon weapon)
-        {
-            return false;
-        }
-
-        _shopWeaponId = weapon.WeaponId;
-        weapon.Free();
-        return !string.IsNullOrWhiteSpace(_shopWeaponId);
     }
 }

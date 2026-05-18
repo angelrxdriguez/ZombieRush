@@ -160,6 +160,16 @@ public partial class PlayerWeaponInventory : Node2D
         return index >= 0 && index < _weaponSlots.Count ? _weaponSlots[index] : null;
     }
 
+    public bool HasWeapon(string weaponId)
+    {
+        if (string.IsNullOrWhiteSpace(weaponId))
+        {
+            return false;
+        }
+
+        return FindWeaponSlot(weaponId) >= 0;
+    }
+
     public bool TryUseActiveWeapon()
     {
         if (_owner is null || !IsInstanceValid(_owner))
