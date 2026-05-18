@@ -315,22 +315,22 @@ theme_override_styles/background = SubResource("StyleBoxFlat_bar_background")
 theme_override_styles/fill = SubResource("StyleBoxFlat_zombie_fill")
 
 [node name="WeaponBar" type="HBoxContainer" parent="Root"]
-custom_minimum_size = Vector2(520, 66)
+custom_minimum_size = Vector2(792, 66)
 layout_mode = 1
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -260.0
+offset_left = -396.0
 offset_top = -92.0
-offset_right = 260.0
+offset_right = 396.0
 offset_bottom = -26.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = 14
 
 [node name="Slot1Button" type="Button" parent="Root/WeaponBar"]
-custom_minimum_size = Vector2(253, 64)
+custom_minimum_size = Vector2(254, 64)
 layout_mode = 2
 toggle_mode = true
 theme_override_colors/font_color = Color(0.96, 0.96, 0.88, 1)
@@ -343,7 +343,7 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_button_primary_hover")
 text = "1 Espada"
 
 [node name="Slot2Button" type="Button" parent="Root/WeaponBar"]
-custom_minimum_size = Vector2(253, 64)
+custom_minimum_size = Vector2(254, 64)
 layout_mode = 2
 disabled = true
 toggle_mode = true
@@ -355,6 +355,20 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_button_secondary_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_primary")
 theme_override_styles/focus = SubResource("StyleBoxFlat_button_primary_hover")
 text = "2 Vacio"
+
+[node name="Slot3Button" type="Button" parent="Root/WeaponBar"]
+custom_minimum_size = Vector2(254, 64)
+layout_mode = 2
+disabled = true
+toggle_mode = true
+theme_override_colors/font_color = Color(0.96, 0.96, 0.88, 1)
+theme_override_colors/font_disabled_color = Color(0.62, 0.63, 0.57, 0.8)
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("StyleBoxFlat_button_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_primary")
+theme_override_styles/focus = SubResource("StyleBoxFlat_button_primary_hover")
+text = "3 Vacio"
 
 [node name="CrosshairCursor" type="Control" parent="Root"]
 layout_mode = 0

@@ -10,7 +10,7 @@ namespace ZombieRush.Features.Weapons;
 
 public partial class PlayerWeaponInventory : Node2D
 {
-    private const int DefaultSlotCount = 2;
+    private const int DefaultSlotCount = 3;
 
     [Export]
     public NodePath OwnerPath { get; set; } = "..";
@@ -94,6 +94,16 @@ public partial class PlayerWeaponInventory : Node2D
         if (IsSlotKey(keyEvent, Key.Key2, Key.Kp2))
         {
             if (SetActiveWeapon(1))
+            {
+                GetViewport().SetInputAsHandled();
+            }
+
+            return;
+        }
+
+        if (IsSlotKey(keyEvent, Key.Key3, Key.Kp3))
+        {
+            if (SetActiveWeapon(2))
             {
                 GetViewport().SetInputAsHandled();
             }
@@ -330,6 +340,17 @@ public partial class PlayerWeaponInventory : Node2D
     {
         if (preferredSlotIndex >= 0 && preferredSlotIndex < _weaponSlots.Count)
         {
+            if (_weaponSlots[preferredSlotIndex] is null)
+            {
+                return preferredSlotIndex;
+            }
+
+            var fallbackEmptySlotIndex = GetFirstEmptySlotIndex();
+            if (fallbackEmptySlotIndex >= 0)
+            {
+                return fallbackEmptySlotIndex;
+            }
+
             return preferredSlotIndex;
         }
 

@@ -32,6 +32,12 @@ public partial class ZombieController : CharacterBody2D
     [Export(PropertyHint.Range, "0.1,3.0,0.05")]
     public float ContactDamageCooldownSeconds { get; set; } = 0.8f;
 
+    [Export(PropertyHint.Range, "80,4000,20")]
+    public float KnockbackDampingPerSecond { get; set; } = 1700.0f;
+
+    [Export(PropertyHint.Range, "0,2000,10")]
+    public float MaxKnockbackSpeed { get; set; } = 780.0f;
+
     [Export]
     public PackedScene? DamageImpactScene { get; set; }
 
@@ -46,6 +52,7 @@ public partial class ZombieController : CharacterBody2D
     private Node2D? _target;
     private Node2D? _visual;
     private ProgressBar? _healthBar;
+    private Vector2 _knockbackVelocity;
     private double _contactDamageCooldownRemaining;
 
     public override void _EnterTree()
@@ -72,6 +79,24 @@ public partial class ZombieController : CharacterBody2D
     public void SetTarget(Node2D target)
     {
         _target = target;
+    }
+
+    public void ApplyKnockback(Vector2 impulse)
+    {
+        if (!IsAlive || impulse.LengthSquared() <= 0.0001f)
+        {
+            return;
+        }
+
+        _knockbackVelocity += impulse;
+
+        var maxKnockbackSpeed = Mathf.Max(0.0f, MaxKnockbackSpeed);
+        if (maxKnockbackSpeed <= 0.0f)
+        {
+            return;
+        }
+
+        _knockbackVelocity = _knockbackVelocity.LimitLength(maxKnockbackSpeed);
     }
 
     public int ApplyDamage(int amount, Vector2? impactPosition = null)
@@ -134,27 +159,42 @@ public partial class ZombieController : CharacterBody2D
     {
         TickContactDamageCooldown(delta);
 
-        if (!IsAlive)
+        var baseVelocity = GetBaseVelocity();
+        Velocity = baseVelocity + _knockbackVelocity;
+        MoveAndSlide();
+
+        if (IsAlive)
         {
-            Velocity = Vector2.Zero;
-            MoveAndSlide();
-            return;
+            TryDamageTarget();
         }
 
-        if (_target is null || !IsInstanceValid(_target))
+        if (Velocity.LengthSquared() > 0.0001f)
         {
-            Velocity = Vector2.Zero;
-            MoveAndSlide();
-            return;
+            var facingRotation = Velocity.Normalized().Angle() + Mathf.Pi / 2.0f;
+            if (_visual is not null)
+            {
+                _visual.Rotation = facingRotation;
+            }
+            else
+            {
+                Rotation = facingRotation;
+            }
+        }
+
+        DampenKnockback(delta);
+    }
+
+    private Vector2 GetBaseVelocity()
+    {
+        if (!IsAlive || _target is null || !IsInstanceValid(_target))
+        {
+            return Vector2.Zero;
         }
 
         var targetOffset = _target.GlobalPosition - GlobalPosition;
         if (targetOffset.LengthSquared() <= 4.0f)
         {
-            Velocity = Vector2.Zero;
-            MoveAndSlide();
-            TryDamageTarget();
-            return;
+            return Vector2.Zero;
         }
 
         var chaseDirection = targetOffset.Normalized();
@@ -170,22 +210,7 @@ public partial class ZombieController : CharacterBody2D
             direction = chaseDirection;
         }
 
-        Velocity = direction * MoveSpeed;
-        MoveAndSlide();
-        TryDamageTarget();
-
-        if (Velocity.LengthSquared() > 0.0001f)
-        {
-            var facingRotation = Velocity.Normalized().Angle() + Mathf.Pi / 2.0f;
-            if (_visual is not null)
-            {
-                _visual.Rotation = facingRotation;
-            }
-            else
-            {
-                Rotation = facingRotation;
-            }
-        }
+        return direction * MoveSpeed;
     }
 
     private Vector2 GetSeparationDirection()
@@ -240,6 +265,18 @@ public partial class ZombieController : CharacterBody2D
         {
             _contactDamageCooldownRemaining = Math.Max(0.0, _contactDamageCooldownRemaining - delta);
         }
+    }
+
+    private void DampenKnockback(double delta)
+    {
+        if (_knockbackVelocity.LengthSquared() <= 0.0001f)
+        {
+            _knockbackVelocity = Vector2.Zero;
+            return;
+        }
+
+        var damping = Mathf.Max(0.0f, KnockbackDampingPerSecond) * (float)delta;
+        _knockbackVelocity = _knockbackVelocity.MoveToward(Vector2.Zero, damping);
     }
 
     private void TryDamageTarget()

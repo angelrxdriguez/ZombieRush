@@ -12,14 +12,21 @@ public partial class BulletProjectile : Node2D
     private int _damage;
     private float _speed;
     private float _maxRange;
+    private float _knockbackStrength;
     private float _distanceTraveled;
 
-    public void Initialize(Vector2 direction, int damage, float speed, float maxRange)
+    public void Initialize(
+        Vector2 direction,
+        int damage,
+        float speed,
+        float maxRange,
+        float knockbackStrength = 0.0f)
     {
         _direction = direction.LengthSquared() > 0.0001f ? direction.Normalized() : Vector2.Right;
         _damage = Mathf.Max(0, damage);
         _speed = Mathf.Max(1.0f, speed);
         _maxRange = Mathf.Max(1.0f, maxRange);
+        _knockbackStrength = Mathf.Max(0.0f, knockbackStrength);
         Rotation = _direction.Angle();
         QueueRedraw();
     }
@@ -44,6 +51,10 @@ public partial class BulletProjectile : Node2D
             if (hit["collider"].AsGodotObject() is ZombieController zombie)
             {
                 zombie.ApplyDamage(_damage, GlobalPosition);
+                if (_knockbackStrength > 0.0f)
+                {
+                    zombie.ApplyKnockback(_direction * _knockbackStrength);
+                }
             }
 
             QueueFree();

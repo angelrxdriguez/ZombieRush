@@ -50,6 +50,9 @@ public partial class GameplayHud : CanvasLayer
     public NodePath WeaponSlot2ButtonPath { get; set; } = "Root/WeaponBar/Slot2Button";
 
     [Export]
+    public NodePath WeaponSlot3ButtonPath { get; set; } = "Root/WeaponBar/Slot3Button";
+
+    [Export]
     public NodePath PauseOverlayPath { get; set; } = "Root/PauseOverlay";
 
     [Export]
@@ -83,6 +86,7 @@ public partial class GameplayHud : CanvasLayer
     private Control? _crosshairCursor;
     private Button? _weaponSlot1Button;
     private Button? _weaponSlot2Button;
+    private Button? _weaponSlot3Button;
     private Control? _pauseOverlay;
     private Button? _resumeButton;
     private Button? _pauseRestartButton;
@@ -107,6 +111,7 @@ public partial class GameplayHud : CanvasLayer
         _crosshairCursor = GetNodeOrNull<Control>(CrosshairCursorPath);
         _weaponSlot1Button = GetNodeOrNull<Button>(WeaponSlot1ButtonPath);
         _weaponSlot2Button = GetNodeOrNull<Button>(WeaponSlot2ButtonPath);
+        _weaponSlot3Button = GetNodeOrNull<Button>(WeaponSlot3ButtonPath);
         _pauseOverlay = GetNodeOrNull<Control>(PauseOverlayPath);
         _resumeButton = GetNodeOrNull<Button>(ResumeButtonPath);
         _pauseRestartButton = GetNodeOrNull<Button>(PauseRestartButtonPath);
@@ -161,6 +166,11 @@ public partial class GameplayHud : CanvasLayer
             _weaponSlot2Button.Pressed += OnWeaponSlot2Pressed;
         }
 
+        if (_weaponSlot3Button is not null)
+        {
+            _weaponSlot3Button.Pressed += OnWeaponSlot3Pressed;
+        }
+
         ResolvePlayer();
         ResolveZombieContainer();
         ResolveMoneyWallet();
@@ -202,6 +212,11 @@ public partial class GameplayHud : CanvasLayer
         if (_weaponSlot2Button is not null)
         {
             _weaponSlot2Button.Pressed -= OnWeaponSlot2Pressed;
+        }
+
+        if (_weaponSlot3Button is not null)
+        {
+            _weaponSlot3Button.Pressed -= OnWeaponSlot3Pressed;
         }
 
         DetachPlayer();
@@ -417,6 +432,7 @@ public partial class GameplayHud : CanvasLayer
     {
         UpdateWeaponSlotButton(_weaponSlot1Button, 0);
         UpdateWeaponSlotButton(_weaponSlot2Button, 1);
+        UpdateWeaponSlotButton(_weaponSlot3Button, 2);
     }
 
     private void RefreshZombieHealth()
@@ -622,6 +638,11 @@ public partial class GameplayHud : CanvasLayer
     private void OnWeaponSlot2Pressed()
     {
         _weaponInventory?.SetActiveWeapon(1);
+    }
+
+    private void OnWeaponSlot3Pressed()
+    {
+        _weaponInventory?.SetActiveWeapon(2);
     }
 
     private static bool IsEscapePressed(InputEvent @event)
