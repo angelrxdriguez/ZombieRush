@@ -22,12 +22,14 @@ Memoria operativa del repositorio para futuras sesiones de Codex.
 - Solucion: `ZombieRush.sln`
 - Escena de arranque: `res://scenes/bootstrap/bootstrap.tscn`
 - Singleton autoload: `res://src/autoload/AppServices.cs`
+- Menu inicial: `res://scenes/ui/main_menu.tscn`
 
 Flujo actual en runtime:
 1. `AppServices` se inicializa primero como autoload.
 2. La base SQLite se crea o abre en `user://zombie-rush.sqlite3`.
 3. Las migraciones SQL se aplican desde `res://data/database/migrations/`.
-4. La escena bootstrap adjunta `res://scenes/gameplay/gameplay_root.tscn`.
+4. La escena bootstrap adjunta `res://scenes/ui/main_menu.tscn`.
+5. Al pulsar `Jugar`, el menu cambia a `res://scenes/gameplay/gameplay_root.tscn`.
 
 ## Convenciones de directorios
 
@@ -93,6 +95,7 @@ Si `godot_console` no esta en `PATH` dentro del shell actual, usar el binario in
 Lo que ya existe:
 - esqueleto del proyecto
 - bootstrap de escenas Godot
+- menu inicial con seleccion de mapa y seccion de personaje placeholder
 - contenedor de servicios por autoload
 - inicializacion de SQLite y primera migracion
 - escenas placeholder de mapa y HUD

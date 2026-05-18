@@ -1,0 +1,289 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://src/features/ui/MainMenu.cs" id="1_xm74s"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.0352941, 0.0431373, 0.0392157, 0.78)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.75, 0.125, 0.105, 0.55)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 18.0
+content_margin_top = 18.0
+content_margin_right = 18.0
+content_margin_bottom = 18.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inner"]
+bg_color = Color(0.08, 0.095, 0.08, 0.82)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.82, 0.78, 0.58, 0.28)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.62, 0.075, 0.065, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.98, 0.45, 0.32, 0.72)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 22.0
+content_margin_top = 16.0
+content_margin_right = 22.0
+content_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.78, 0.12, 0.1, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.72, 0.48, 0.92)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 22.0
+content_margin_top = 16.0
+content_margin_right = 22.0
+content_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_select"]
+bg_color = Color(0.11, 0.13, 0.105, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.86, 0.78, 0.48, 0.48)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 14.0
+content_margin_top = 12.0
+content_margin_right = 14.0
+content_margin_bottom = 12.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_portrait"]
+bg_color = Color(0.025, 0.031, 0.028, 0.84)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.8, 0.1, 0.08, 0.36)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_xm74s")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="DarkOverlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.48)
+
+[node name="LeftShade" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 0.58
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.015, 0.02, 0.017, 0.55)
+
+[node name="RootMargin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 88.0
+offset_top = 72.0
+offset_right = -88.0
+offset_bottom = -72.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Layout" type="HBoxContainer" parent="RootMargin"]
+layout_mode = 2
+theme_override_constants/separation = 72
+
+[node name="Actions" type="VBoxContainer" parent="RootMargin/Layout"]
+custom_minimum_size = Vector2(560, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="TitleBlock" type="VBoxContainer" parent="RootMargin/Layout/Actions"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="RootMargin/Layout/Actions/TitleBlock"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.96, 0.88, 1)
+theme_override_colors/font_shadow_color = Color(0.45, 0.03, 0.025, 0.85)
+theme_override_constants/shadow_offset_x = 4
+theme_override_constants/shadow_offset_y = 4
+theme_override_font_sizes/font_size = 96
+text = "ZombieRush"
+
+[node name="Subtitle" type="Label" parent="RootMargin/Layout/Actions/TitleBlock"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.82, 0.62, 0.92)
+theme_override_font_sizes/font_size = 26
+text = "Sobrevive a la horda"
+
+[node name="MapPanel" type="PanelContainer" parent="RootMargin/Layout/Actions"]
+custom_minimum_size = Vector2(520, 148)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="RootMargin/Layout/Actions/MapPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 20
+
+[node name="Content" type="VBoxContainer" parent="RootMargin/Layout/Actions/MapPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MapLabel" type="Label" parent="RootMargin/Layout/Actions/MapPanel/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.78, 0.5, 1)
+theme_override_font_sizes/font_size = 18
+text = "SELECCION DE MAPA"
+
+[node name="MapSelector" type="OptionButton" parent="RootMargin/Layout/Actions/MapPanel/Margin/Content"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.95, 0.88, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_select")
+theme_override_styles/hover = SubResource("StyleBoxFlat_select")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_select")
+theme_override_styles/focus = SubResource("StyleBoxFlat_select")
+
+[node name="PlayButton" type="Button" parent="RootMargin/Layout/Actions"]
+custom_minimum_size = Vector2(520, 70)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.88, 1)
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
+text = "Jugar"
+
+[node name="CharacterPanel" type="PanelContainer" parent="RootMargin/Layout"]
+custom_minimum_size = Vector2(500, 650)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="RootMargin/Layout/CharacterPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 28
+
+[node name="Content" type="VBoxContainer" parent="RootMargin/Layout/CharacterPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 22
+
+[node name="Header" type="Label" parent="RootMargin/Layout/CharacterPanel/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.96, 0.88, 1)
+theme_override_font_sizes/font_size = 34
+text = "Personaje"
+horizontal_alignment = 1
+
+[node name="PortraitFrame" type="PanelContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content"]
+custom_minimum_size = Vector2(420, 390)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_portrait")
+
+[node name="Center" type="CenterContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content/PortraitFrame"]
+layout_mode = 2
+
+[node name="Silhouette" type="VBoxContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content/PortraitFrame/Center"]
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="Head" type="PanelContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content/PortraitFrame/Center/Silhouette"]
+custom_minimum_size = Vector2(92, 92)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_inner")
+
+[node name="Body" type="PanelContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content/PortraitFrame/Center/Silhouette"]
+custom_minimum_size = Vector2(178, 214)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_inner")
+
+[node name="CharacterName" type="Label" parent="RootMargin/Layout/CharacterPanel/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.82, 0.62, 1)
+theme_override_font_sizes/font_size = 24
+text = "Superviviente"
+horizontal_alignment = 1
+
+[node name="CharacterStats" type="VBoxContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HealthText" type="Label" parent="RootMargin/Layout/CharacterPanel/Margin/Content/CharacterStats"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.88, 0.8, 0.9)
+theme_override_font_sizes/font_size = 18
+text = "Vida inicial: 100"
+horizontal_alignment = 1
+
+[node name="WeaponText" type="Label" parent="RootMargin/Layout/CharacterPanel/Margin/Content/CharacterStats"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.88, 0.8, 0.9)
+theme_override_font_sizes/font_size = 18
+text = "Equipo: espada"
+horizontal_alignment = 1
