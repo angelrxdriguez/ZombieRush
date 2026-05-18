@@ -26,6 +26,23 @@ public partial class MoneyWallet : Node
         EmitMoneyChanged();
     }
 
+    public bool TrySpend(int amount)
+    {
+        if (amount <= 0)
+        {
+            return true;
+        }
+
+        if (CurrentMoney < amount)
+        {
+            return false;
+        }
+
+        CurrentMoney -= amount;
+        EmitMoneyChanged();
+        return true;
+    }
+
     private void EmitMoneyChanged()
     {
         MoneyChanged?.Invoke(CurrentMoney);

@@ -72,4 +72,29 @@ public sealed class PlayerProfileRepository
 
         return GetOrCreate();
     }
+
+    public bool TrySpendCurrency(int amount)
+    {
+        if (amount <= 0)
+        {
+            return true;
+        }
+
+        GetOrCreate();
+
+        var nowUtc = DateTime.UtcNow.ToString("O");
+
+        using var updateCommand = _connection.CreateCommand();
+        updateCommand.CommandText = """
+            UPDATE player_profile
+            SET total_currency = total_currency - $amount,
+                updated_utc = $updatedUtc
+            WHERE id = 1
+              AND total_currency >= $amount;
+            """;
+        updateCommand.Parameters.AddWithValue("$amount", amount);
+        updateCommand.Parameters.AddWithValue("$updatedUtc", nowUtc);
+
+        return updateCommand.ExecuteNonQuery() > 0;
+    }
 }

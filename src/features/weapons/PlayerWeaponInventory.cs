@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using ZombieRush.Features.Player;
 
@@ -6,17 +8,29 @@ namespace ZombieRush.Features.Weapons;
 
 public partial class PlayerWeaponInventory : Node2D
 {
+    private const int DefaultSlotCount = 2;
+
     [Export]
     public NodePath OwnerPath { get; set; } = "..";
 
-    private readonly List<PlayerWeapon> _weapons = [];
+    [Export(PropertyHint.Range, "1,6,1")]
+    public int MaxSlots { get; set; } = DefaultSlotCount;
+
+    private readonly List<PlayerWeapon?> _weaponSlots = [];
+    private readonly HashSet<ulong> _subscribedWeaponIds = [];
     private PlayerController? _owner;
     private int _activeWeaponIndex;
 
     public PlayerWeapon? ActiveWeapon =>
-        _activeWeaponIndex >= 0 && _activeWeaponIndex < _weapons.Count
-            ? _weapons[_activeWeaponIndex]
+        _activeWeaponIndex >= 0 && _activeWeaponIndex < _weaponSlots.Count
+            ? _weaponSlots[_activeWeaponIndex]
             : null;
+
+    public int ActiveSlotIndex => _activeWeaponIndex;
+
+    public event Action? InventoryChanged;
+
+    public event Action? ActiveWeaponChanged;
 
     public override void _Ready()
     {
@@ -24,7 +38,17 @@ public partial class PlayerWeaponInventory : Node2D
         RefreshWeapons();
     }
 
-    public override void _Input(InputEvent @event)
+    public override void _ExitTree()
+    {
+        foreach (var weapon in _weaponSlots.OfType<PlayerWeapon>())
+        {
+            weapon.StateChanged -= OnWeaponStateChanged;
+        }
+
+        _subscribedWeaponIds.Clear();
+    }
+
+    public override void _UnhandledInput(InputEvent @event)
     {
         if (@event is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } mouseEvent &&
             !mouseEvent.DoubleClick)
@@ -33,29 +57,86 @@ public partial class PlayerWeaponInventory : Node2D
             {
                 GetViewport().SetInputAsHandled();
             }
+
+            return;
+        }
+
+        if (@event is not InputEventKey { Pressed: true, Echo: false } keyEvent)
+        {
+            return;
+        }
+
+        if (IsSlotKey(keyEvent, Key.Key1, Key.Kp1))
+        {
+            if (SetActiveWeapon(0))
+            {
+                GetViewport().SetInputAsHandled();
+            }
+
+            return;
+        }
+
+        if (IsSlotKey(keyEvent, Key.Key2, Key.Kp2))
+        {
+            if (SetActiveWeapon(1))
+            {
+                GetViewport().SetInputAsHandled();
+            }
+
+            return;
+        }
+
+        if (keyEvent.Keycode == Key.R && TryReloadActiveWeapon())
+        {
+            GetViewport().SetInputAsHandled();
         }
     }
 
-    public void EquipWeapon(PlayerWeapon weapon)
+    public void EquipWeapon(PlayerWeapon weapon, int preferredSlotIndex = -1)
     {
-        AddChild(weapon);
-        RefreshWeapons();
+        EnsureSlotCount();
 
-        if (_weapons.Count == 1)
+        var existingSlotIndex = FindWeaponSlot(weapon.WeaponId);
+        if (existingSlotIndex >= 0)
         {
-            _activeWeaponIndex = 0;
+            weapon.QueueFree();
+            SetActiveWeapon(existingSlotIndex);
+            return;
         }
+
+        var targetSlotIndex = GetTargetSlotIndex(preferredSlotIndex);
+        ReplaceSlotWeapon(targetSlotIndex, weapon);
+
+        if (_activeWeaponIndex < 0)
+        {
+            _activeWeaponIndex = targetSlotIndex;
+        }
+
+        SetActiveWeapon(targetSlotIndex);
+        EmitInventoryChanged();
     }
 
     public bool SetActiveWeapon(int index)
     {
-        if (index < 0 || index >= _weapons.Count)
+        if (index < 0 || index >= _weaponSlots.Count || _weaponSlots[index] is null)
         {
             return false;
         }
 
+        if (_activeWeaponIndex == index)
+        {
+            return true;
+        }
+
         _activeWeaponIndex = index;
+        ActiveWeaponChanged?.Invoke();
+        InventoryChanged?.Invoke();
         return true;
+    }
+
+    public PlayerWeapon? GetWeaponInSlot(int index)
+    {
+        return index >= 0 && index < _weaponSlots.Count ? _weaponSlots[index] : null;
     }
 
     public bool TryUseActiveWeapon()
@@ -76,24 +157,181 @@ public partial class PlayerWeaponInventory : Node2D
         return weapon.TryUse(_owner, aimDirection);
     }
 
+    public bool TryReloadActiveWeapon()
+    {
+        if (_owner is null || !IsInstanceValid(_owner))
+        {
+            _owner = GetNodeOrNull<PlayerController>(OwnerPath);
+        }
+
+        var weapon = ActiveWeapon;
+        return _owner is not null && weapon is not null && weapon.TryReload(_owner);
+    }
+
     private void RefreshWeapons()
     {
-        _weapons.Clear();
+        EnsureSlotCount();
+
+        foreach (var weapon in _weaponSlots.OfType<PlayerWeapon>())
+        {
+            weapon.StateChanged -= OnWeaponStateChanged;
+        }
+
+        _subscribedWeaponIds.Clear();
+        _weaponSlots.Clear();
+        EnsureSlotCount();
 
         foreach (var child in GetChildren())
         {
-            if (child is PlayerWeapon weapon)
+            if (child is not PlayerWeapon weapon)
             {
-                _weapons.Add(weapon);
+                continue;
             }
+
+            var slotIndex = GetFirstEmptySlotIndex();
+            if (slotIndex < 0)
+            {
+                break;
+            }
+
+            _weaponSlots[slotIndex] = weapon;
+            SubscribeToWeapon(weapon);
         }
 
-        if (_weapons.Count == 0)
+        if (_weaponSlots.All(weapon => weapon is null))
         {
             _activeWeaponIndex = -1;
+            EmitInventoryChanged();
             return;
         }
 
-        _activeWeaponIndex = Mathf.Clamp(_activeWeaponIndex, 0, _weapons.Count - 1);
+        if (_activeWeaponIndex < 0 ||
+            _activeWeaponIndex >= _weaponSlots.Count ||
+            _weaponSlots[_activeWeaponIndex] is null)
+        {
+            _activeWeaponIndex = GetFirstOccupiedSlotIndex();
+        }
+
+        EmitInventoryChanged();
+    }
+
+    private void ReplaceSlotWeapon(int slotIndex, PlayerWeapon weapon)
+    {
+        var previousWeapon = _weaponSlots[slotIndex];
+        if (previousWeapon is not null && IsInstanceValid(previousWeapon))
+        {
+            previousWeapon.StateChanged -= OnWeaponStateChanged;
+            _subscribedWeaponIds.Remove(previousWeapon.GetInstanceId());
+            previousWeapon.QueueFree();
+        }
+
+        if (weapon.GetParent() is not null)
+        {
+            weapon.Reparent(this);
+        }
+        else
+        {
+            AddChild(weapon);
+        }
+
+        _weaponSlots[slotIndex] = weapon;
+        SubscribeToWeapon(weapon);
+    }
+
+    private int GetTargetSlotIndex(int preferredSlotIndex)
+    {
+        if (preferredSlotIndex >= 0 && preferredSlotIndex < _weaponSlots.Count)
+        {
+            return preferredSlotIndex;
+        }
+
+        var emptySlotIndex = GetFirstEmptySlotIndex();
+        if (emptySlotIndex >= 0)
+        {
+            return emptySlotIndex;
+        }
+
+        return Mathf.Clamp(_activeWeaponIndex, 0, _weaponSlots.Count - 1);
+    }
+
+    private int FindWeaponSlot(string weaponId)
+    {
+        for (var i = 0; i < _weaponSlots.Count; i++)
+        {
+            if (_weaponSlots[i]?.WeaponId == weaponId)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private int GetFirstEmptySlotIndex()
+    {
+        for (var i = 0; i < _weaponSlots.Count; i++)
+        {
+            if (_weaponSlots[i] is null)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private int GetFirstOccupiedSlotIndex()
+    {
+        for (var i = 0; i < _weaponSlots.Count; i++)
+        {
+            if (_weaponSlots[i] is not null)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private void EnsureSlotCount()
+    {
+        MaxSlots = Mathf.Max(1, MaxSlots);
+
+        while (_weaponSlots.Count < MaxSlots)
+        {
+            _weaponSlots.Add(null);
+        }
+
+        while (_weaponSlots.Count > MaxSlots)
+        {
+            _weaponSlots.RemoveAt(_weaponSlots.Count - 1);
+        }
+    }
+
+    private void SubscribeToWeapon(PlayerWeapon weapon)
+    {
+        var weaponId = weapon.GetInstanceId();
+        if (!_subscribedWeaponIds.Add(weaponId))
+        {
+            return;
+        }
+
+        weapon.StateChanged += OnWeaponStateChanged;
+    }
+
+    private void OnWeaponStateChanged()
+    {
+        InventoryChanged?.Invoke();
+    }
+
+    private void EmitInventoryChanged()
+    {
+        ActiveWeaponChanged?.Invoke();
+        InventoryChanged?.Invoke();
+    }
+
+    private static bool IsSlotKey(InputEventKey keyEvent, Key topRowKey, Key keypadKey)
+    {
+        return keyEvent.Keycode == topRowKey || keyEvent.Keycode == keypadKey;
     }
 }

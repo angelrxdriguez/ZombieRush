@@ -1,6 +1,7 @@
 using Godot;
 using ZombieRush.Features.Economy;
 using ZombieRush.Features.Player;
+using ZombieRush.Features.Weapons;
 using ZombieRush.Features.Zombies;
 
 namespace ZombieRush.Features.UI;
@@ -17,6 +18,9 @@ public partial class GameplayHud : CanvasLayer
 
     [Export]
     public NodePath MoneyWalletPath { get; set; } = "../Economy/MoneyWallet";
+
+    [Export]
+    public NodePath WeaponInventoryPath { get; set; } = "../Actors/Player/Weapons";
 
     [Export]
     public NodePath MoneyTextPath { get; set; } = "Root/StatusPanel/Margin/Content/MoneyRow/MoneyContent/MoneyText";
@@ -38,6 +42,12 @@ public partial class GameplayHud : CanvasLayer
 
     [Export]
     public NodePath CrosshairCursorPath { get; set; } = "Root/CrosshairCursor";
+
+    [Export]
+    public NodePath WeaponSlot1ButtonPath { get; set; } = "Root/WeaponBar/Slot1Button";
+
+    [Export]
+    public NodePath WeaponSlot2ButtonPath { get; set; } = "Root/WeaponBar/Slot2Button";
 
     [Export]
     public NodePath PauseOverlayPath { get; set; } = "Root/PauseOverlay";
@@ -63,6 +73,7 @@ public partial class GameplayHud : CanvasLayer
     private PlayerController? _player;
     private Node? _zombieContainer;
     private MoneyWallet? _moneyWallet;
+    private PlayerWeaponInventory? _weaponInventory;
     private Label? _moneyText;
     private Label? _survivalTimerText;
     private ProgressBar? _playerHealthBar;
@@ -70,6 +81,8 @@ public partial class GameplayHud : CanvasLayer
     private ProgressBar? _zombieHealthBar;
     private Label? _zombieHealthText;
     private Control? _crosshairCursor;
+    private Button? _weaponSlot1Button;
+    private Button? _weaponSlot2Button;
     private Control? _pauseOverlay;
     private Button? _resumeButton;
     private Button? _pauseRestartButton;
@@ -92,6 +105,8 @@ public partial class GameplayHud : CanvasLayer
         _zombieHealthBar = GetNodeOrNull<ProgressBar>(ZombieHealthBarPath);
         _zombieHealthText = GetNodeOrNull<Label>(ZombieHealthTextPath);
         _crosshairCursor = GetNodeOrNull<Control>(CrosshairCursorPath);
+        _weaponSlot1Button = GetNodeOrNull<Button>(WeaponSlot1ButtonPath);
+        _weaponSlot2Button = GetNodeOrNull<Button>(WeaponSlot2ButtonPath);
         _pauseOverlay = GetNodeOrNull<Control>(PauseOverlayPath);
         _resumeButton = GetNodeOrNull<Button>(ResumeButtonPath);
         _pauseRestartButton = GetNodeOrNull<Button>(PauseRestartButtonPath);
@@ -136,12 +151,24 @@ public partial class GameplayHud : CanvasLayer
             _restartButton.Pressed += OnRestartPressed;
         }
 
+        if (_weaponSlot1Button is not null)
+        {
+            _weaponSlot1Button.Pressed += OnWeaponSlot1Pressed;
+        }
+
+        if (_weaponSlot2Button is not null)
+        {
+            _weaponSlot2Button.Pressed += OnWeaponSlot2Pressed;
+        }
+
         ResolvePlayer();
         ResolveZombieContainer();
         ResolveMoneyWallet();
+        ResolveWeaponInventory();
         RefreshMoney();
         RefreshPlayerHealth();
         RefreshZombieHealth();
+        RefreshWeaponSlots();
         UpdateSurvivalTimerTexts();
     }
 
@@ -167,8 +194,19 @@ public partial class GameplayHud : CanvasLayer
             _restartButton.Pressed -= OnRestartPressed;
         }
 
+        if (_weaponSlot1Button is not null)
+        {
+            _weaponSlot1Button.Pressed -= OnWeaponSlot1Pressed;
+        }
+
+        if (_weaponSlot2Button is not null)
+        {
+            _weaponSlot2Button.Pressed -= OnWeaponSlot2Pressed;
+        }
+
         DetachPlayer();
         DetachMoneyWallet();
+        DetachWeaponInventory();
     }
 
     public override void _Process(double delta)
@@ -194,6 +232,12 @@ public partial class GameplayHud : CanvasLayer
         {
             ResolveMoneyWallet();
             RefreshMoney();
+        }
+
+        if (_weaponInventory is null || !IsInstanceValid(_weaponInventory))
+        {
+            ResolveWeaponInventory();
+            RefreshWeaponSlots();
         }
 
         RefreshZombieHealth();
@@ -282,9 +326,45 @@ public partial class GameplayHud : CanvasLayer
         _moneyWallet = null;
     }
 
+    private void ResolveWeaponInventory()
+    {
+        var candidate = GetNodeOrNull<PlayerWeaponInventory>(WeaponInventoryPath);
+        if (ReferenceEquals(candidate, _weaponInventory))
+        {
+            return;
+        }
+
+        DetachWeaponInventory();
+        _weaponInventory = candidate;
+
+        if (_weaponInventory is null)
+        {
+            return;
+        }
+
+        _weaponInventory.InventoryChanged += OnWeaponInventoryChanged;
+    }
+
+    private void DetachWeaponInventory()
+    {
+        if (_weaponInventory is null || !IsInstanceValid(_weaponInventory))
+        {
+            _weaponInventory = null;
+            return;
+        }
+
+        _weaponInventory.InventoryChanged -= OnWeaponInventoryChanged;
+        _weaponInventory = null;
+    }
+
     private void OnMoneyChanged(int currentMoney)
     {
         UpdateMoneyText(currentMoney);
+    }
+
+    private void OnWeaponInventoryChanged()
+    {
+        RefreshWeaponSlots();
     }
 
     private void OnPlayerHealthChanged(int currentHealth, int maxHealth)
@@ -331,6 +411,12 @@ public partial class GameplayHud : CanvasLayer
     private void RefreshMoney()
     {
         UpdateMoneyText(_moneyWallet?.CurrentMoney ?? 0);
+    }
+
+    private void RefreshWeaponSlots()
+    {
+        UpdateWeaponSlotButton(_weaponSlot1Button, 0);
+        UpdateWeaponSlotButton(_weaponSlot2Button, 1);
     }
 
     private void RefreshZombieHealth()
@@ -404,6 +490,33 @@ public partial class GameplayHud : CanvasLayer
         {
             _moneyText.Text = $"${currentMoney}";
         }
+    }
+
+    private void UpdateWeaponSlotButton(Button? button, int slotIndex)
+    {
+        if (button is null)
+        {
+            return;
+        }
+
+        var weapon = _weaponInventory?.GetWeaponInSlot(slotIndex);
+        var isActive = _weaponInventory is not null &&
+            _weaponInventory.ActiveSlotIndex == slotIndex &&
+            weapon is not null;
+
+        button.Disabled = weapon is null;
+        button.SetPressedNoSignal(isActive);
+
+        if (weapon is null)
+        {
+            button.Text = $"{slotIndex + 1} Vacio";
+            return;
+        }
+
+        var hudDetail = weapon.GetHudDetail();
+        button.Text = string.IsNullOrWhiteSpace(hudDetail)
+            ? $"{slotIndex + 1} {weapon.DisplayName}"
+            : $"{slotIndex + 1} {weapon.DisplayName} {hudDetail}";
     }
 
     private void UpdateSurvivalTimerTexts()
@@ -490,6 +603,16 @@ public partial class GameplayHud : CanvasLayer
     {
         GetTree().Paused = false;
         GetTree().ChangeSceneToFile(BootstrapScenePath);
+    }
+
+    private void OnWeaponSlot1Pressed()
+    {
+        _weaponInventory?.SetActiveWeapon(0);
+    }
+
+    private void OnWeaponSlot2Pressed()
+    {
+        _weaponInventory?.SetActiveWeapon(1);
     }
 
     private static bool IsEscapePressed(InputEvent @event)

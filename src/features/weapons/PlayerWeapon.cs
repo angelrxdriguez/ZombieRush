@@ -19,6 +19,8 @@ public abstract partial class PlayerWeapon : Node2D
 
     public bool IsReady => _cooldownRemaining <= 0.0;
 
+    public event Action? StateChanged;
+
     public override void _Process(double delta)
     {
         if (_cooldownRemaining > 0.0)
@@ -45,7 +47,23 @@ public abstract partial class PlayerWeapon : Node2D
         }
 
         _cooldownRemaining = CooldownSeconds;
+        EmitStateChanged();
         return true;
+    }
+
+    public virtual bool TryReload(PlayerController owner)
+    {
+        return false;
+    }
+
+    public virtual string GetHudDetail()
+    {
+        return string.Empty;
+    }
+
+    protected void EmitStateChanged()
+    {
+        StateChanged?.Invoke();
     }
 
     protected abstract bool Use(PlayerController owner, Vector2 direction);
