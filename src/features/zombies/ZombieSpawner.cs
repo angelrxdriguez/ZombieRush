@@ -6,9 +6,13 @@ namespace ZombieRush.Features.Zombies;
 public partial class ZombieSpawner : Node
 {
     private const string DefaultZombieScenePath = "res://scenes/zombies/zombie_basic.tscn";
+    private const string DefaultIronZombieScenePath = "res://scenes/zombies/zombie_iron.tscn";
 
     [Export]
     public PackedScene? ZombieScene { get; set; }
+
+    [Export]
+    public PackedScene? IronZombieScene { get; set; }
 
     [Export]
     public NodePath SpawnPointsPath { get; set; } = "../../CurrentMap/ZombieSpawns";
@@ -39,12 +43,15 @@ public partial class ZombieSpawner : Node
     private int _nextSpawnPointIndex;
     private int _currentWave;
     private int _remainingToSpawnInWave;
+    private int _remainingBasicToSpawnInWave;
+    private int _remainingIronToSpawnInWave;
     private int _aliveInWave;
     private double _spawnCooldownRemaining;
 
     public override void _Ready()
     {
         ZombieScene ??= ResourceLoader.Load<PackedScene>(DefaultZombieScenePath);
+        IronZombieScene ??= ResourceLoader.Load<PackedScene>(DefaultIronZombieScenePath);
     }
 
     public override void _Process(double delta)
@@ -99,8 +106,12 @@ public partial class ZombieSpawner : Node
 
         var baseCount = Math.Max(1, InitialSpawnCount);
         var addedPerWave = Math.Max(0, ZombiesAddedPerWave);
-        var zombiesThisWave = baseCount + ((_currentWave - 1) * addedPerWave);
+        var basicZombiesThisWave = baseCount + ((_currentWave - 1) * addedPerWave);
+        var ironZombiesThisWave = GetIronZombiesForWave(_currentWave);
+        var zombiesThisWave = basicZombiesThisWave + ironZombiesThisWave;
 
+        _remainingBasicToSpawnInWave = basicZombiesThisWave;
+        _remainingIronToSpawnInWave = ironZombiesThisWave;
         _remainingToSpawnInWave = zombiesThisWave;
         _aliveInWave = 0;
         _spawnCooldownRemaining = Math.Max(0.5f, SpawnBatchIntervalSeconds);
@@ -127,7 +138,8 @@ public partial class ZombieSpawner : Node
             var spawnPoint = _spawnPoints[_nextSpawnPointIndex % _spawnPoints.Count];
             _nextSpawnPointIndex++;
 
-            var zombie = ZombieScene.Instantiate<ZombieController>();
+            var zombieScene = SelectSceneForNextZombie();
+            var zombie = zombieScene.Instantiate<ZombieController>();
             zombie.GlobalPosition = spawnPoint.GlobalPosition;
             zombie.SetTarget(_target);
             zombie.HealthDepleted += OnWaveZombieDepleted;
@@ -135,9 +147,8 @@ public partial class ZombieSpawner : Node
 
             _aliveInWave++;
             ZombieSpawned?.Invoke(zombie);
+            _remainingToSpawnInWave--;
         }
-
-        _remainingToSpawnInWave -= spawnCount;
     }
 
     private bool ResolveSpawnContext()
@@ -179,5 +190,38 @@ public partial class ZombieSpawner : Node
     private void OnWaveZombieDepleted()
     {
         _aliveInWave = Math.Max(0, _aliveInWave - 1);
+    }
+
+    private PackedScene SelectSceneForNextZombie()
+    {
+        if (_remainingIronToSpawnInWave > 0 && IronZombieScene is not null)
+        {
+            _remainingIronToSpawnInWave--;
+            return IronZombieScene;
+        }
+
+        if (_remainingBasicToSpawnInWave > 0)
+        {
+            _remainingBasicToSpawnInWave--;
+            return ZombieScene!;
+        }
+
+        if (_remainingIronToSpawnInWave > 0)
+        {
+            _remainingIronToSpawnInWave--;
+            return ZombieScene!;
+        }
+
+        return ZombieScene!;
+    }
+
+    private static int GetIronZombiesForWave(int waveNumber)
+    {
+        if (waveNumber <= 0 || (waveNumber % 2) != 0)
+        {
+            return 0;
+        }
+
+        return waveNumber / 2;
     }
 }
