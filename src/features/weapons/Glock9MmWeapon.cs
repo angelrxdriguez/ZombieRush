@@ -79,6 +79,20 @@ public partial class Glock9MmWeapon : PlayerWeapon
         return true;
     }
 
+    public override bool IsReloading => _reloadTimeRemaining > 0.0;
+
+    public override float GetReloadProgress01()
+    {
+        if (_reloadTimeRemaining <= 0.0)
+        {
+            return 0.0f;
+        }
+
+        var safeReloadDuration = Mathf.Max(0.01f, ReloadDurationSeconds);
+        var progress = 1.0f - (float)(_reloadTimeRemaining / safeReloadDuration);
+        return Mathf.Clamp(progress, 0.0f, 1.0f);
+    }
+
     public override string GetHudDetail()
     {
         InitializeAmmo();

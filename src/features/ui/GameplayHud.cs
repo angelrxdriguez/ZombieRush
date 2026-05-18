@@ -83,7 +83,7 @@ public partial class GameplayHud : CanvasLayer
     private Label? _playerHealthText;
     private ProgressBar? _zombieHealthBar;
     private Label? _zombieHealthText;
-    private Control? _crosshairCursor;
+    private CrosshairCursor? _crosshairCursor;
     private Button? _weaponSlot1Button;
     private Button? _weaponSlot2Button;
     private Button? _weaponSlot3Button;
@@ -108,7 +108,7 @@ public partial class GameplayHud : CanvasLayer
         _playerHealthText = GetNodeOrNull<Label>(PlayerHealthTextPath);
         _zombieHealthBar = GetNodeOrNull<ProgressBar>(ZombieHealthBarPath);
         _zombieHealthText = GetNodeOrNull<Label>(ZombieHealthTextPath);
-        _crosshairCursor = GetNodeOrNull<Control>(CrosshairCursorPath);
+        _crosshairCursor = GetNodeOrNull<CrosshairCursor>(CrosshairCursorPath);
         _weaponSlot1Button = GetNodeOrNull<Button>(WeaponSlot1ButtonPath);
         _weaponSlot2Button = GetNodeOrNull<Button>(WeaponSlot2ButtonPath);
         _weaponSlot3Button = GetNodeOrNull<Button>(WeaponSlot3ButtonPath);
@@ -179,6 +179,7 @@ public partial class GameplayHud : CanvasLayer
         RefreshPlayerHealth();
         RefreshZombieHealth();
         RefreshWeaponSlots();
+        RefreshCrosshairReloadIndicator();
         UpdateSurvivalTimerTexts();
     }
 
@@ -255,6 +256,7 @@ public partial class GameplayHud : CanvasLayer
             RefreshWeaponSlots();
         }
 
+        RefreshCrosshairReloadIndicator();
         RefreshZombieHealth();
     }
 
@@ -433,6 +435,23 @@ public partial class GameplayHud : CanvasLayer
         UpdateWeaponSlotButton(_weaponSlot1Button, 0);
         UpdateWeaponSlotButton(_weaponSlot2Button, 1);
         UpdateWeaponSlotButton(_weaponSlot3Button, 2);
+    }
+
+    private void RefreshCrosshairReloadIndicator()
+    {
+        if (_crosshairCursor is null)
+        {
+            return;
+        }
+
+        var activeWeapon = _weaponInventory?.ActiveWeapon;
+        if (activeWeapon is null)
+        {
+            _crosshairCursor.SetReloadProgress(false, 0.0f);
+            return;
+        }
+
+        _crosshairCursor.SetReloadProgress(activeWeapon.IsReloading, activeWeapon.GetReloadProgress01());
     }
 
     private void RefreshZombieHealth()

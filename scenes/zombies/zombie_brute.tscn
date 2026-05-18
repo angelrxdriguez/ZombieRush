@@ -1,0 +1,59 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/features/zombies/BruteZombieController.cs" id="1_x0ck8"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_brute_collision"]
+radius = 34.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_health_background"]
+bg_color = Color(0.04, 0.055, 0.048, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.01, 0.02, 0.01, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_health_fill"]
+bg_color = Color(0.35, 0.88, 0.45, 0.98)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="ZombieBrute" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 7
+motion_mode = 1
+script = ExtResource("1_x0ck8")
+
+[node name="HealthBarAnchor" type="Node2D" parent="."]
+position = Vector2(0, -60)
+
+[node name="HealthBar" type="ProgressBar" parent="HealthBarAnchor"]
+custom_minimum_size = Vector2(96, 12)
+offset_left = -48.0
+offset_top = -8.0
+offset_right = 48.0
+offset_bottom = 4.0
+mouse_filter = 2
+show_percentage = false
+value = 300.0
+theme_override_styles/background = SubResource("StyleBoxFlat_health_background")
+theme_override_styles/fill = SubResource("StyleBoxFlat_health_fill")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_brute_collision")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Body" type="Polygon2D" parent="Visual"]
+color = Color(0.172549, 0.25098, 0.180392, 1)
+polygon = PackedVector2Array(-24, -20, 24, -20, 30, 32, -30, 32)
+
+[node name="FaceDirection" type="Polygon2D" parent="Visual"]
+color = Color(0.541176, 0.741176, 0.607843, 1)
+polygon = PackedVector2Array(0, -38, 15, -12, -15, -12)

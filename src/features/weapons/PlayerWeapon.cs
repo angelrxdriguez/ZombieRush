@@ -59,6 +59,13 @@ public abstract partial class PlayerWeapon : Node2D
         return false;
     }
 
+    public virtual bool IsReloading => false;
+
+    public virtual float GetReloadProgress01()
+    {
+        return 0.0f;
+    }
+
     public virtual string GetHudDetail()
     {
         return string.Empty;

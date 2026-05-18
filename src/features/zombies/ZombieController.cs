@@ -1,6 +1,7 @@
 using System;
 using Godot;
 using ZombieRush.Features.Player;
+using ZombieRush.Features.Vfx;
 
 namespace ZombieRush.Features.Zombies;
 
@@ -10,6 +11,9 @@ public partial class ZombieController : CharacterBody2D
     private const string VisualNodePath = "Visual";
     private const string HealthBarPath = "HealthBarAnchor/HealthBar";
     private const string DefaultDamageImpactScenePath = "res://scenes/vfx/blood_impact_fx.tscn";
+    private const string DefaultDamageNumberScenePath = "res://scenes/vfx/damage_number_fx.tscn";
+    private static readonly Color LowHealthColor = new(0.86f, 0.22f, 0.16f, 0.98f);
+    private static readonly Color HighHealthColor = new(0.33f, 0.88f, 0.45f, 0.98f);
 
     [Export(PropertyHint.Range, "60,360,10")]
     public float MoveSpeed { get; set; } = 170.0f;
@@ -41,6 +45,15 @@ public partial class ZombieController : CharacterBody2D
     [Export]
     public PackedScene? DamageImpactScene { get; set; }
 
+    [Export]
+    public PackedScene? DamageNumberScene { get; set; }
+
+    [Export(PropertyHint.Range, "0,48,1")]
+    public float DamageNumberVerticalOffset { get; set; } = 24.0f;
+
+    [Export(PropertyHint.Range, "0.0,90.0,0.5")]
+    public float CorpseLifetimeSeconds { get; set; } = 25.0f;
+
     public int CurrentHealth { get; private set; }
 
     public bool IsAlive => CurrentHealth > 0;
@@ -52,8 +65,12 @@ public partial class ZombieController : CharacterBody2D
     private Node2D? _target;
     private Node2D? _visual;
     private ProgressBar? _healthBar;
+    private StyleBoxFlat? _healthBarFillStyle;
     private Vector2 _knockbackVelocity;
     private double _contactDamageCooldownRemaining;
+    private bool _deathHandled;
+
+    protected Node2D? CurrentTarget => _target;
 
     public override void _EnterTree()
     {
@@ -73,6 +90,8 @@ public partial class ZombieController : CharacterBody2D
         MaxHealth = Math.Max(1, MaxHealth);
         CurrentHealth = MaxHealth;
         DamageImpactScene ??= ResourceLoader.Load<PackedScene>(DefaultDamageImpactScenePath);
+        DamageNumberScene ??= ResourceLoader.Load<PackedScene>(DefaultDamageNumberScenePath);
+        CloneHealthBarFillStyle();
         EmitHealthChanged();
     }
 
@@ -115,11 +134,12 @@ public partial class ZombieController : CharacterBody2D
 
         CurrentHealth = nextHealth;
         SpawnDamageImpact(impactPosition ?? GlobalPosition);
+        SpawnDamageNumber(appliedDamage, impactPosition ?? GlobalPosition);
         EmitHealthChanged();
 
         if (CurrentHealth == 0)
         {
-            HealthDepleted?.Invoke();
+            HandleDeath();
         }
 
         return appliedDamage;
@@ -305,6 +325,33 @@ public partial class ZombieController : CharacterBody2D
         HealthChanged?.Invoke(CurrentHealth, MaxHealth);
     }
 
+    private void HandleDeath()
+    {
+        if (_deathHandled)
+        {
+            return;
+        }
+
+        _deathHandled = true;
+        RemoveFromGroup(ZombieGroup);
+
+        Velocity = Vector2.Zero;
+        _knockbackVelocity = Vector2.Zero;
+        CollisionLayer = 0;
+        CollisionMask = 0;
+
+        if (_visual is not null)
+        {
+            _visual.Modulate = new Color(0.62f, 0.62f, 0.62f, 1.0f);
+        }
+
+        ReparentCorpseToCurrentScene();
+        SetPhysicsProcess(false);
+
+        HealthDepleted?.Invoke();
+        StartCorpseLifetimeTimer();
+    }
+
     private void SpawnDamageImpact(Vector2 impactPosition)
     {
         if (DamageImpactScene?.Instantiate() is not Node2D impactFx)
@@ -323,6 +370,25 @@ public partial class ZombieController : CharacterBody2D
         impactFx.GlobalPosition = impactPosition;
     }
 
+    private void SpawnDamageNumber(int damageAmount, Vector2 impactPosition)
+    {
+        if (damageAmount <= 0 || DamageNumberScene?.Instantiate() is not DamageNumberFx damageNumberFx)
+        {
+            return;
+        }
+
+        var parent = GetTree()?.CurrentScene ?? GetParent();
+        if (parent is null)
+        {
+            damageNumberFx.QueueFree();
+            return;
+        }
+
+        parent.AddChild(damageNumberFx);
+        damageNumberFx.GlobalPosition = impactPosition + new Vector2(0.0f, -Mathf.Max(0.0f, DamageNumberVerticalOffset));
+        damageNumberFx.Initialize(damageAmount);
+    }
+
     private void UpdateHealthBar()
     {
         if (_healthBar is null)
@@ -332,5 +398,65 @@ public partial class ZombieController : CharacterBody2D
 
         _healthBar.MaxValue = MaxHealth;
         _healthBar.Value = Mathf.Clamp(CurrentHealth, 0, MaxHealth);
+        _healthBar.Visible = IsAlive && CurrentHealth < MaxHealth;
+
+        if (_healthBarFillStyle is not null && MaxHealth > 0)
+        {
+            var healthRatio = Mathf.Clamp((float)CurrentHealth / MaxHealth, 0.0f, 1.0f);
+            _healthBarFillStyle.BgColor = LowHealthColor.Lerp(HighHealthColor, healthRatio);
+        }
+    }
+
+    private void CloneHealthBarFillStyle()
+    {
+        if (_healthBar?.GetThemeStylebox("fill") is not StyleBoxFlat fillStyle)
+        {
+            return;
+        }
+
+        _healthBarFillStyle = fillStyle.Duplicate() as StyleBoxFlat;
+        if (_healthBarFillStyle is null)
+        {
+            return;
+        }
+
+        _healthBar.AddThemeStyleboxOverride("fill", _healthBarFillStyle);
+    }
+
+    private void ReparentCorpseToCurrentScene()
+    {
+        var currentScene = GetTree()?.CurrentScene;
+        var currentParent = GetParent();
+        if (currentScene is null || currentParent is null || currentParent == currentScene)
+        {
+            return;
+        }
+
+        Reparent(currentScene, true);
+    }
+
+    private void StartCorpseLifetimeTimer()
+    {
+        var corpseLifetime = Mathf.Max(0.0f, CorpseLifetimeSeconds);
+        if (corpseLifetime <= 0.0f)
+        {
+            QueueFree();
+            return;
+        }
+
+        var tree = GetTree();
+        if (tree is null)
+        {
+            QueueFree();
+            return;
+        }
+
+        var timer = tree.CreateTimer(corpseLifetime);
+        timer.Timeout += OnCorpseLifetimeElapsed;
+    }
+
+    private void OnCorpseLifetimeElapsed()
+    {
+        QueueFree();
     }
 }

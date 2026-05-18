@@ -265,3 +265,36 @@ position = Vector2(3712, 1080)
 
 [node name="NorthWest" type="Marker2D" parent="ZombieSpawns"]
 position = Vector2(128, 128)
+
+[node name="NorthEast" type="Marker2D" parent="ZombieSpawns"]
+position = Vector2(3712, 128)
+
+[node name="SouthWest" type="Marker2D" parent="ZombieSpawns"]
+position = Vector2(128, 2032)
+
+[node name="SouthEast" type="Marker2D" parent="ZombieSpawns"]
+position = Vector2(3712, 2032)
+
+[node name="NorthInnerLeft" type="Marker2D" parent="ZombieSpawns"]
+position = Vector2(960, 128)
+
+[node name="NorthInnerRight" type="Marker2D" parent="ZombieSpawns"]
+position = Vector2(2880, 128)
+
+[node name="SouthInnerLeft" type="Marker2D" parent="ZombieSpawns"]
+position = Vector2(960, 2032)
+
+[node name="SouthInnerRight" type="Marker2D" parent="ZombieSpawns"]
+position = Vector2(2880, 2032)
+
+[node name="WestUpper" type="Marker2D" parent="ZombieSpawns"]
+position = Vector2(128, 512)
+
+[node name="WestLower" type="Marker2D" parent="ZombieSpawns"]
+position = Vector2(128, 1648)
+
+[node name="EastUpper" type="Marker2D" parent="ZombieSpawns"]
+position = Vector2(3712, 512)
+
+[node name="EastLower" type="Marker2D" parent="ZombieSpawns"]
+position = Vector2(3712, 1648)
