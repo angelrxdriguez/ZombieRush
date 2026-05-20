@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://src/features/player/PlayerController.cs" id="1_cxu6d"]
 [ext_resource type="Script" path="res://src/features/weapons/PlayerWeaponInventory.cs" id="2_3ikcu"]
 [ext_resource type="Script" path="res://src/features/weapons/SwordWeapon.cs" id="3_b21d4"]
 [ext_resource type="Script" path="res://src/features/vfx/EntityVisualAnimator.cs" id="4_8r2l1"]
+[ext_resource type="Script" path="res://src/features/weapons/GrenadeWeapon.cs" id="5_grenade"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_mg8br"]
 radius = 24.0
@@ -72,11 +73,18 @@ polygon = PackedVector2Array(-6, 9, 6, 9, 7, 18, -7, 18)
 
 [node name="Weapons" type="Node2D" parent="."]
 script = ExtResource("2_3ikcu")
-MaxSlots = 3
+MaxSlots = 4
 
 [node name="Sword" type="Node2D" parent="Weapons"]
 z_index = 10
 script = ExtResource("3_b21d4")
+
+[node name="Grenade" type="Node2D" parent="Weapons"]
+z_index = 10
+script = ExtResource("5_grenade")
+StartingSlotIndex = 3
+StartingGrenades = 1
+MaxGrenades = 3
 
 [node name="Camera2D" type="Camera2D" parent="."]
 enabled = true

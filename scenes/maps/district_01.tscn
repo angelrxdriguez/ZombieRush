@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://src/features/weapons/WeaponShopPickup.cs" id="1_umrnl"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/glock_9mm.tscn" id="2_el34h"]
 [ext_resource type="Script" path="res://src/features/player/MedkitPickup.cs" id="3_5tq2k"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/shotgun_12g.tscn" id="4_5vsn1"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/frag_grenade.tscn" id="5_grenade_shop"]
 
 [node name="District01" type="Node2D"]
 
@@ -187,6 +188,47 @@ text = "$2800"
 horizontal_alignment = 1
 
 [node name="PromptLabel" type="Label" parent="WeaponShops/Shotgun12GShop"]
+visible = false
+offset_left = -82.0
+offset_top = -87.0
+offset_right = 82.0
+offset_bottom = -60.0
+theme_override_colors/font_color = Color(1, 0.95, 0.76, 1)
+theme_override_font_sizes/font_size = 20
+text = "E Comprar"
+horizontal_alignment = 1
+
+[node name="GrenadeShop" type="Node2D" parent="WeaponShops"]
+z_index = 8
+position = Vector2(2880, 1080)
+script = ExtResource("1_umrnl")
+WeaponScene = ExtResource("5_grenade_shop")
+DisplayName = "Granada"
+Price = 400
+PreferredSlotIndex = 3
+PurchaseRadius = 78.0
+
+[node name="NameLabel" type="Label" parent="WeaponShops/GrenadeShop"]
+offset_left = -90.0
+offset_top = 52.0
+offset_right = 90.0
+offset_bottom = 76.0
+theme_override_colors/font_color = Color(0.96, 0.96, 0.88, 1)
+theme_override_font_sizes/font_size = 18
+text = "Granada"
+horizontal_alignment = 1
+
+[node name="PriceLabel" type="Label" parent="WeaponShops/GrenadeShop"]
+offset_left = -90.0
+offset_top = 76.0
+offset_right = 90.0
+offset_bottom = 103.0
+theme_override_colors/font_color = Color(0.96, 0.82, 0.34, 1)
+theme_override_font_sizes/font_size = 24
+text = "$400"
+horizontal_alignment = 1
+
+[node name="PromptLabel" type="Label" parent="WeaponShops/GrenadeShop"]
 visible = false
 offset_left = -82.0
 offset_top = -87.0

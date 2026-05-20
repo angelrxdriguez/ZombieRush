@@ -10,7 +10,8 @@ namespace ZombieRush.Features.Weapons;
 
 public partial class PlayerWeaponInventory : Node2D
 {
-    private const int DefaultSlotCount = 3;
+    private const int DefaultSlotCount = 4;
+    private const string GrenadeWeaponId = "frag_grenade";
 
     [Export]
     public NodePath OwnerPath { get; set; } = "..";
@@ -111,6 +112,22 @@ public partial class PlayerWeaponInventory : Node2D
             return;
         }
 
+        if (IsSlotKey(keyEvent, Key.Key4, Key.Kp4))
+        {
+            if (SetActiveWeapon(3))
+            {
+                GetViewport().SetInputAsHandled();
+            }
+
+            return;
+        }
+
+        if (keyEvent.Keycode == Key.G && TryThrowGrenade())
+        {
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+
         if (keyEvent.Keycode == Key.R && TryReloadActiveWeapon())
         {
             GetViewport().SetInputAsHandled();
@@ -198,6 +215,35 @@ public partial class PlayerWeaponInventory : Node2D
         return weapon.TryUse(_owner, aimDirection);
     }
 
+    public bool TryThrowGrenade()
+    {
+        if (_owner is null || !IsInstanceValid(_owner))
+        {
+            _owner = GetNodeOrNull<PlayerController>(OwnerPath);
+        }
+
+        if (_owner is null)
+        {
+            return false;
+        }
+
+        var slotIndex = FindWeaponSlot(GrenadeWeaponId);
+        if (slotIndex < 0)
+        {
+            return false;
+        }
+
+        var grenade = _weaponSlots[slotIndex];
+        if (grenade is null || !grenade.IsReady)
+        {
+            return false;
+        }
+
+        var aimDirection = _owner.GetGlobalMousePosition() - _owner.GlobalPosition;
+        _owner.SetFacingDirection(aimDirection);
+        return grenade.TryUse(_owner, aimDirection);
+    }
+
     public bool TryReloadActiveWeapon()
     {
         if (_owner is null || !IsInstanceValid(_owner))
@@ -268,6 +314,7 @@ public partial class PlayerWeaponInventory : Node2D
         _weaponSlots.Clear();
         EnsureSlotCount();
 
+        var pendingWeapons = new List<PlayerWeapon>();
         foreach (var child in GetChildren())
         {
             if (child is not PlayerWeapon weapon)
@@ -275,6 +322,20 @@ public partial class PlayerWeaponInventory : Node2D
                 continue;
             }
 
+            if (weapon.StartingSlotIndex >= 0 &&
+                weapon.StartingSlotIndex < _weaponSlots.Count &&
+                _weaponSlots[weapon.StartingSlotIndex] is null)
+            {
+                _weaponSlots[weapon.StartingSlotIndex] = weapon;
+                SubscribeToWeapon(weapon);
+                continue;
+            }
+
+            pendingWeapons.Add(weapon);
+        }
+
+        foreach (var weapon in pendingWeapons)
+        {
             var slotIndex = GetFirstEmptySlotIndex();
             if (slotIndex < 0)
             {

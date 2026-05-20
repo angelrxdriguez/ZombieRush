@@ -53,6 +53,9 @@ public partial class GameplayHud : CanvasLayer
     public NodePath WeaponSlot3ButtonPath { get; set; } = "Root/WeaponBar/Slot3Button";
 
     [Export]
+    public NodePath WeaponSlot4ButtonPath { get; set; } = "Root/WeaponBar/Slot4Button";
+
+    [Export]
     public NodePath PauseOverlayPath { get; set; } = "Root/PauseOverlay";
 
     [Export]
@@ -87,6 +90,7 @@ public partial class GameplayHud : CanvasLayer
     private Button? _weaponSlot1Button;
     private Button? _weaponSlot2Button;
     private Button? _weaponSlot3Button;
+    private Button? _weaponSlot4Button;
     private Control? _pauseOverlay;
     private Button? _resumeButton;
     private Button? _pauseRestartButton;
@@ -112,6 +116,7 @@ public partial class GameplayHud : CanvasLayer
         _weaponSlot1Button = GetNodeOrNull<Button>(WeaponSlot1ButtonPath);
         _weaponSlot2Button = GetNodeOrNull<Button>(WeaponSlot2ButtonPath);
         _weaponSlot3Button = GetNodeOrNull<Button>(WeaponSlot3ButtonPath);
+        _weaponSlot4Button = GetNodeOrNull<Button>(WeaponSlot4ButtonPath);
         _pauseOverlay = GetNodeOrNull<Control>(PauseOverlayPath);
         _resumeButton = GetNodeOrNull<Button>(ResumeButtonPath);
         _pauseRestartButton = GetNodeOrNull<Button>(PauseRestartButtonPath);
@@ -171,6 +176,11 @@ public partial class GameplayHud : CanvasLayer
             _weaponSlot3Button.Pressed += OnWeaponSlot3Pressed;
         }
 
+        if (_weaponSlot4Button is not null)
+        {
+            _weaponSlot4Button.Pressed += OnWeaponSlot4Pressed;
+        }
+
         ResolvePlayer();
         ResolveZombieContainer();
         ResolveMoneyWallet();
@@ -218,6 +228,11 @@ public partial class GameplayHud : CanvasLayer
         if (_weaponSlot3Button is not null)
         {
             _weaponSlot3Button.Pressed -= OnWeaponSlot3Pressed;
+        }
+
+        if (_weaponSlot4Button is not null)
+        {
+            _weaponSlot4Button.Pressed -= OnWeaponSlot4Pressed;
         }
 
         DetachPlayer();
@@ -435,6 +450,7 @@ public partial class GameplayHud : CanvasLayer
         UpdateWeaponSlotButton(_weaponSlot1Button, 0);
         UpdateWeaponSlotButton(_weaponSlot2Button, 1);
         UpdateWeaponSlotButton(_weaponSlot3Button, 2);
+        UpdateWeaponSlotButton(_weaponSlot4Button, 3);
     }
 
     private void RefreshCrosshairReloadIndicator()
@@ -535,21 +551,26 @@ public partial class GameplayHud : CanvasLayer
         }
 
         var weapon = _weaponInventory?.GetWeaponInSlot(slotIndex);
-        var isActive = _weaponInventory is not null &&
+        var isGrenadeSlot = slotIndex == 3;
+        var isActive = !isGrenadeSlot &&
+            _weaponInventory is not null &&
             _weaponInventory.ActiveSlotIndex == slotIndex &&
             weapon is not null;
+        var slotLabel = isGrenadeSlot ? "G" : (slotIndex + 1).ToString();
+        var grenadeCount = (weapon as GrenadeWeapon)?.GetGrenadeCount() ?? 0;
+        var hasGrenades = isGrenadeSlot && grenadeCount > 0;
 
-        button.Disabled = weapon is null;
+        button.Disabled = weapon is null || (isGrenadeSlot && !hasGrenades);
         button.SetPressedNoSignal(isActive);
 
         if (weapon is null)
         {
-            button.Text = $"{slotIndex + 1} Vacio";
+            button.Text = $"{slotLabel} Vacio";
             return;
         }
 
         var hudDetail = weapon.GetHudDetail();
-        if (isActive && weapon.SupportsAmmoRestock && !weapon.IsAmmoFull())
+        if (!isGrenadeSlot && isActive && weapon.SupportsAmmoRestock && !weapon.IsAmmoFull())
         {
             var refillCost = weapon.GetAmmoRefillPrice();
             var refillHint = $"B ${refillCost}";
@@ -559,8 +580,8 @@ public partial class GameplayHud : CanvasLayer
         }
 
         button.Text = string.IsNullOrWhiteSpace(hudDetail)
-            ? $"{slotIndex + 1} {weapon.DisplayName}"
-            : $"{slotIndex + 1} {weapon.DisplayName} {hudDetail}";
+            ? $"{slotLabel} {weapon.DisplayName}"
+            : $"{slotLabel} {weapon.DisplayName} {hudDetail}";
     }
 
     private void UpdateSurvivalTimerTexts()
@@ -662,6 +683,11 @@ public partial class GameplayHud : CanvasLayer
     private void OnWeaponSlot3Pressed()
     {
         _weaponInventory?.SetActiveWeapon(2);
+    }
+
+    private void OnWeaponSlot4Pressed()
+    {
+        _weaponInventory?.TryThrowGrenade();
     }
 
     private static bool IsEscapePressed(InputEvent @event)

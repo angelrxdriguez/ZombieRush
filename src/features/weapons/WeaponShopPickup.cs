@@ -127,9 +127,8 @@ public partial class WeaponShopPickup : Node2D
         _shopWeaponId = weapon.WeaponId;
         if (_inventory.HasWeapon(weapon.WeaponId))
         {
-            _isWeaponOwned = true;
             weapon.Free();
-            SetPromptText("Ya comprada");
+            TryPurchaseAdditionalAmmo();
             return;
         }
 
@@ -158,6 +157,83 @@ public partial class WeaponShopPickup : Node2D
         _inventory.EquipWeapon(weapon, PreferredSlotIndex);
         _isWeaponOwned = true;
         SetPromptText("Ya comprada");
+    }
+
+    private void TryPurchaseAdditionalAmmo()
+    {
+        if (_inventory is null || _moneyWallet is null || string.IsNullOrWhiteSpace(_shopWeaponId))
+        {
+            SetPromptText("No disponible");
+            return;
+        }
+
+        var ownedWeapon = FindOwnedWeapon(_shopWeaponId);
+        if (ownedWeapon is null || !ownedWeapon.SupportsAmmoRestock)
+        {
+            _isWeaponOwned = true;
+            SetPromptText("Ya comprada");
+            return;
+        }
+
+        if (ownedWeapon.IsAmmoFull())
+        {
+            _isWeaponOwned = true;
+            SetPromptText("Reserva llena");
+            return;
+        }
+
+        if (!_moneyWallet.TrySpend(Price))
+        {
+            SetPromptText($"Faltan ${Price - _moneyWallet.CurrentMoney}");
+            return;
+        }
+
+        var spentPersistentCurrency = false;
+        var profileRepository = AppServices.Instance?.PlayerProfiles;
+        if (profileRepository is not null)
+        {
+            spentPersistentCurrency = profileRepository.TrySpendCurrency(Price);
+            if (!spentPersistentCurrency)
+            {
+                _moneyWallet.AddMoney(Price);
+                SetPromptText("Saldo no sincronizado");
+                return;
+            }
+        }
+
+        if (!ownedWeapon.RestockAmmo())
+        {
+            _moneyWallet.AddMoney(Price);
+            if (spentPersistentCurrency)
+            {
+                profileRepository?.AddCurrency(Price);
+            }
+
+            SetPromptText("Reserva llena");
+            return;
+        }
+
+        _isWeaponOwned = true;
+        SetPromptText(ownedWeapon.IsAmmoFull() ? "Reserva llena" : $"E +1 ${Price}");
+    }
+
+    private PlayerWeapon? FindOwnedWeapon(string weaponId)
+    {
+        if (_inventory is null)
+        {
+            return null;
+        }
+
+        for (var slotIndex = 0; slotIndex < 6; slotIndex++)
+        {
+            var weapon = _inventory.GetWeaponInSlot(slotIndex);
+            if (weapon is not null && weapon.WeaponId == weaponId)
+            {
+                return weapon;
+            }
+        }
+
+        return null;
     }
 
     private void ResolveDependencies()
@@ -212,7 +288,20 @@ public partial class WeaponShopPickup : Node2D
             return;
         }
 
-        SetPromptText(_isWeaponOwned ? "Ya comprada" : "E Comprar");
+        if (!_isWeaponOwned)
+        {
+            SetPromptText("E Comprar");
+            return;
+        }
+
+        var ownedWeapon = string.IsNullOrWhiteSpace(_shopWeaponId) ? null : FindOwnedWeapon(_shopWeaponId);
+        if (ownedWeapon is not null && ownedWeapon.SupportsAmmoRestock && !ownedWeapon.IsAmmoFull())
+        {
+            SetPromptText($"E +1 ${Price}");
+            return;
+        }
+
+        SetPromptText(ownedWeapon is not null && ownedWeapon.SupportsAmmoRestock ? "Reserva llena" : "Ya comprada");
     }
 
     private void SetPromptText(string text)

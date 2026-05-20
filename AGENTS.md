@@ -40,7 +40,8 @@ Flujo actual en runtime:
 - Movimiento: `WASD` o flechas
 - Dash: `Espacio`
 - Ataque: click izquierdo
-- Cambiar arma: `1` y `2`
+- Cambiar arma: `1`, `2` y `3`
+- Lanzar granada (slot dedicado): `G`
 - Recargar arma de fuego: `R`
 - Comprar municion del arma activa: `B`
 - Comprar arma en tienda de mapa: `E`

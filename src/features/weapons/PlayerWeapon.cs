@@ -15,6 +15,9 @@ public abstract partial class PlayerWeapon : Node2D
     [Export(PropertyHint.Range, "0,99999,1")]
     public int PurchasePrice { get; set; }
 
+    [Export(PropertyHint.Range, "-1,5,1")]
+    public int StartingSlotIndex { get; set; } = -1;
+
     [Export(PropertyHint.Range, "0.05,5.0,0.05")]
     public float CooldownSeconds { get; set; } = 0.5f;
 
