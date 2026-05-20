@@ -30,11 +30,18 @@ public partial class MedkitPickup : Node2D
     [Export]
     public NodePath PromptLabelPath { get; set; } = "PromptLabel";
 
+    [Export]
+    public NodePath VisualSpritePath { get; set; } = "Visual";
+
+    [Export(PropertyHint.File, "*.png")]
+    public string VisualTexturePath { get; set; } = string.Empty;
+
     private PlayerController? _player;
     private MoneyWallet? _moneyWallet;
     private Label? _nameLabel;
     private Label? _priceLabel;
     private Label? _promptLabel;
+    private Sprite2D? _visualSprite;
     private bool _isPlayerInRange;
 
     public override void _Ready()
@@ -42,7 +49,9 @@ public partial class MedkitPickup : Node2D
         _nameLabel = GetNodeOrNull<Label>(NameLabelPath);
         _priceLabel = GetNodeOrNull<Label>(PriceLabelPath);
         _promptLabel = GetNodeOrNull<Label>(PromptLabelPath);
+        _visualSprite = GetNodeOrNull<Sprite2D>(VisualSpritePath);
 
+        LoadVisualTexture();
         UpdateStaticLabels();
         ResolveDependencies();
         UpdatePrompt();
@@ -79,13 +88,14 @@ public partial class MedkitPickup : Node2D
             ? new Color(0.36f, 0.9f, 0.58f, 0.95f)
             : new Color(0.52f, 0.72f, 0.58f, 0.72f);
 
-        DrawCircle(Vector2.Zero, PurchaseRadius, new Color(0.05f, 0.06f, 0.05f, 0.36f));
-        DrawArc(Vector2.Zero, PurchaseRadius, 0.0f, Mathf.Pi * 2.0f, 48, accentColor, 3.0f, true);
+        var padColor = _isPlayerInRange
+            ? new Color(0.03f, 0.07f, 0.05f, 0.42f)
+            : new Color(0.03f, 0.05f, 0.04f, 0.28f);
 
-        DrawRect(new Rect2(-24.0f, -17.0f, 48.0f, 34.0f), new Color(0.09f, 0.17f, 0.12f, 0.95f), true);
-        DrawRect(new Rect2(-24.0f, -17.0f, 48.0f, 34.0f), accentColor, false, 2.0f, true);
-        DrawRect(new Rect2(-7.0f, -10.0f, 14.0f, 20.0f), accentColor, true);
-        DrawRect(new Rect2(-13.0f, -4.0f, 26.0f, 8.0f), accentColor, true);
+        DrawCircle(Vector2.Zero, PurchaseRadius, new Color(0.05f, 0.06f, 0.05f, 0.22f));
+        DrawArc(Vector2.Zero, PurchaseRadius, 0.0f, Mathf.Pi * 2.0f, 48, accentColor, 3.0f, true);
+        DrawCircle(Vector2.Zero, 54.0f, padColor);
+        DrawArc(Vector2.Zero, 54.0f, 0.0f, Mathf.Pi * 2.0f, 40, accentColor.Darkened(0.15f), 1.5f, true);
     }
 
     private void TryHealPlayer()
@@ -175,6 +185,24 @@ public partial class MedkitPickup : Node2D
         {
             _priceLabel.Text = $"${HealPrice}";
         }
+    }
+
+    private void LoadVisualTexture()
+    {
+        if (_visualSprite is null || string.IsNullOrWhiteSpace(VisualTexturePath))
+        {
+            return;
+        }
+
+        var image = new Image();
+        var error = image.Load(VisualTexturePath);
+        if (error != Error.Ok)
+        {
+            GD.PushError($"No se pudo cargar el sprite del botiquin {VisualTexturePath}: {error}");
+            return;
+        }
+
+        _visualSprite.Texture = ImageTexture.CreateFromImage(image);
     }
 
     private void UpdatePrompt()

@@ -248,6 +248,12 @@ script = ExtResource("3_5tq2k")
 DisplayName = "Botiquin"
 HealPrice = 1500
 PurchaseRadius = 78.0
+VisualTexturePath = "res://assets/maps/district_01/medkit_station.png"
+
+[node name="Visual" type="Sprite2D" parent="HealingPoints/MedkitStation"]
+texture_filter = 2
+position = Vector2(0, -4)
+scale = Vector2(0.12, 0.12)
 
 [node name="NameLabel" type="Label" parent="HealingPoints/MedkitStation"]
 offset_left = -90.0
