@@ -27,6 +27,7 @@ public partial class PlayerWeaponInventory : Node2D
     private PlayerController? _owner;
     private MoneyWallet? _moneyWallet;
     private int _activeWeaponIndex;
+    private bool _isFireButtonHeld;
 
     public PlayerWeapon? ActiveWeapon =>
         _activeWeaponIndex >= 0 && _activeWeaponIndex < _weaponSlots.Count
@@ -58,8 +59,18 @@ public partial class PlayerWeaponInventory : Node2D
 
     public override void _Input(InputEvent @event)
     {
-        if (@event is not InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } mouseEvent ||
-            mouseEvent.DoubleClick)
+        if (@event is not InputEventMouseButton { ButtonIndex: MouseButton.Left } mouseEvent)
+        {
+            return;
+        }
+
+        if (!mouseEvent.Pressed)
+        {
+            _isFireButtonHeld = false;
+            return;
+        }
+
+        if (mouseEvent.DoubleClick)
         {
             return;
         }
@@ -69,10 +80,33 @@ public partial class PlayerWeaponInventory : Node2D
             return;
         }
 
+        _isFireButtonHeld = true;
+
         if (TryUseActiveWeapon())
         {
             GetViewport().SetInputAsHandled();
         }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (!_isFireButtonHeld)
+        {
+            return;
+        }
+
+        var weapon = ActiveWeapon;
+        if (weapon is null || !weapon.SupportsAutomaticFire)
+        {
+            return;
+        }
+
+        if (GetViewport().GuiGetHoveredControl() is BaseButton)
+        {
+            return;
+        }
+
+        TryUseActiveWeapon();
     }
 
     public override void _UnhandledInput(InputEvent @event)

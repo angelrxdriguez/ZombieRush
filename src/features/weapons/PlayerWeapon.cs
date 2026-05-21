@@ -84,6 +84,8 @@ public abstract partial class PlayerWeapon : Node2D
 
     public virtual bool SupportsAmmoRestock => false;
 
+    public virtual bool SupportsAutomaticFire => false;
+
     public virtual bool IsAmmoFull()
     {
         return true;

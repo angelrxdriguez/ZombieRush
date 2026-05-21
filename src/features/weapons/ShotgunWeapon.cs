@@ -6,6 +6,8 @@ namespace ZombieRush.Features.Weapons;
 
 public partial class ShotgunWeapon : PlayerWeapon
 {
+    private const string ProjectileTexturePath = "res://assets/GunsPack/Bullets/ShotgunShellBig.png";
+
     [Export(PropertyHint.Range, "1,200,1")]
     public int DamagePerPellet { get; set; } = 22;
 
@@ -181,7 +183,8 @@ public partial class ShotgunWeapon : PlayerWeapon
                 DamagePerPellet,
                 ProjectileSpeed,
                 ProjectileRange,
-                KnockbackStrength);
+                KnockbackStrength,
+                ProjectileTexturePath);
         }
 
         _shellsInMagazine--;

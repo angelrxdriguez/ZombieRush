@@ -4,43 +4,56 @@ using ZombieRush.Features.Player;
 
 namespace ZombieRush.Features.Weapons;
 
-public partial class LugerWeapon : PlayerWeapon
+public partial class AssaultRifleWeapon : PlayerWeapon
 {
     private const string ProjectileTexturePath = "res://assets/GunsPack/Bullets/PistolAmmoSmall.png";
 
     [Export(PropertyHint.Range, "1,200,1")]
-    public int Damage { get; set; } = 35;
+    public int Damage { get; set; } = 25;
 
-    [Export(PropertyHint.Range, "1,60,1")]
-    public int MagazineSize { get; set; } = 15;
+    [Export(PropertyHint.Range, "1,120,1")]
+    public int MagazineSize { get; set; } = 30;
 
-    [Export(PropertyHint.Range, "0,300,1")]
-    public int InitialReserveBullets { get; set; } = 45;
+    [Export(PropertyHint.Range, "0,600,1")]
+    public int InitialReserveBullets { get; set; } = 90;
 
-    [Export(PropertyHint.Range, "0.1,4.0,0.05")]
-    public float ReloadDurationSeconds { get; set; } = 1.1f;
+    [Export(PropertyHint.Range, "0.1,5.0,0.05")]
+    public float ReloadDurationSeconds { get; set; } = 2.0f;
 
     [Export(PropertyHint.Range, "240,2400,20")]
-    public float ProjectileSpeed { get; set; } = 1450.0f;
+    public float ProjectileSpeed { get; set; } = 1700.0f;
 
     [Export(PropertyHint.Range, "120,2400,20")]
-    public float ProjectileRange { get; set; } = 1200.0f;
+    public float ProjectileRange { get; set; } = 1100.0f;
 
     [Export(PropertyHint.Range, "0,96,2")]
-    public float BulletSpawnDistance { get; set; } = 36.0f;
+    public float BulletSpawnDistance { get; set; } = 38.0f;
+
+    [Export(PropertyHint.Range, "0,30,0.5")]
+    public float MaxSpreadAngleDegrees { get; set; } = 9.0f;
+
+    [Export(PropertyHint.Range, "1,30,1")]
+    public int ShotsUntilMaxSpread { get; set; } = 6;
+
+    [Export(PropertyHint.Range, "0.05,2.0,0.05")]
+    public float SpreadResetSeconds { get; set; } = 0.35f;
 
     private int _bulletsInMagazine;
     private int _reserveBullets;
     private double _reloadTimeRemaining;
+    private double _timeSinceLastShot;
+    private int _consecutiveShots;
     private bool _hasInitializedAmmo;
+    private readonly RandomNumberGenerator _spreadRng = new();
 
-    public LugerWeapon()
+    public AssaultRifleWeapon()
     {
-        WeaponId = "luger";
-        DisplayName = "Luger";
-        HudIconPath = "res://assets/GunsPack/Guns/Luger.png";
-        PurchasePrice = 700;
-        CooldownSeconds = 0.18f;
+        WeaponId = "ak47";
+        DisplayName = "AK47";
+        HudIconPath = "res://assets/GunsPack/Guns/AK47.png";
+        PurchasePrice = 2200;
+        CooldownSeconds = 0.10f;
+        _spreadRng.Randomize();
     }
 
     public override void _Ready()
@@ -52,6 +65,15 @@ public partial class LugerWeapon : PlayerWeapon
     public override void _Process(double delta)
     {
         base._Process(delta);
+
+        if (_consecutiveShots > 0)
+        {
+            _timeSinceLastShot += delta;
+            if (_timeSinceLastShot >= SpreadResetSeconds)
+            {
+                _consecutiveShots = 0;
+            }
+        }
 
         if (_reloadTimeRemaining <= 0.0)
         {
@@ -78,6 +100,7 @@ public partial class LugerWeapon : PlayerWeapon
         }
 
         _reloadTimeRemaining = ReloadDurationSeconds;
+        _consecutiveShots = 0;
         EmitStateChanged();
         return true;
     }
@@ -106,6 +129,8 @@ public partial class LugerWeapon : PlayerWeapon
     }
 
     public override bool SupportsAmmoRestock => true;
+
+    public override bool SupportsAutomaticFire => true;
 
     public override bool IsAmmoFull()
     {
@@ -156,19 +181,37 @@ public partial class LugerWeapon : PlayerWeapon
             return false;
         }
 
+        var firingDirection = ApplySpread(direction);
+
         var bullet = new BulletProjectile();
         projectileParent.AddChild(bullet);
-        bullet.GlobalPosition = owner.GlobalPosition + (direction * BulletSpawnDistance);
+        bullet.GlobalPosition = owner.GlobalPosition + (firingDirection * BulletSpawnDistance);
         bullet.Initialize(
-            direction,
+            firingDirection,
             Damage,
             ProjectileSpeed,
             ProjectileRange,
             visualTexturePath: ProjectileTexturePath);
 
         _bulletsInMagazine--;
+        _consecutiveShots++;
+        _timeSinceLastShot = 0.0;
         EmitStateChanged();
         return true;
+    }
+
+    private Vector2 ApplySpread(Vector2 direction)
+    {
+        if (_consecutiveShots <= 0 || MaxSpreadAngleDegrees <= 0.0f)
+        {
+            return direction;
+        }
+
+        var rampSteps = Mathf.Max(1, ShotsUntilMaxSpread);
+        var rampFactor = Mathf.Clamp((float)_consecutiveShots / rampSteps, 0.0f, 1.0f);
+        var spreadRadians = Mathf.DegToRad(MaxSpreadAngleDegrees) * rampFactor;
+        var randomOffset = _spreadRng.RandfRange(-spreadRadians, spreadRadians);
+        return direction.Rotated(randomOffset);
     }
 
     private void InitializeAmmo()
