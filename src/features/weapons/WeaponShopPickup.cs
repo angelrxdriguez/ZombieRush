@@ -23,6 +23,21 @@ public partial class WeaponShopPickup : Node2D
     public float PurchaseRadius { get; set; } = 78.0f;
 
     [Export]
+    public Texture2D? WeaponVisualTexture { get; set; }
+
+    [Export(PropertyHint.File, "*.png")]
+    public string WeaponVisualTexturePath { get; set; } = string.Empty;
+
+    [Export(PropertyHint.Range, "0.5,12.0,0.1")]
+    public float WeaponVisualScale { get; set; } = 4.0f;
+
+    [Export]
+    public Vector2 WeaponVisualOffset { get; set; } = new Vector2(0.0f, -4.0f);
+
+    [Export]
+    public bool HideDefaultWeaponGlyphWhenTextureAvailable { get; set; } = true;
+
+    [Export]
     public NodePath PlayerPath { get; set; } = "../../../Actors/Player";
 
     [Export]
@@ -49,6 +64,7 @@ public partial class WeaponShopPickup : Node2D
     private bool _isPlayerInRange;
     private bool _isWeaponOwned;
     private string _shopWeaponId = string.Empty;
+    private bool _hasAttemptedWeaponVisualLoad;
 
     public override void _Ready()
     {
@@ -56,6 +72,7 @@ public partial class WeaponShopPickup : Node2D
         _priceLabel = GetNodeOrNull<Label>(PriceLabelPath);
         _promptLabel = GetNodeOrNull<Label>(PromptLabelPath);
 
+        ResolveWeaponVisualTexture();
         UpdateStaticLabels();
         ResolveDependencies();
         ResolveShopWeaponId();
@@ -92,14 +109,28 @@ public partial class WeaponShopPickup : Node2D
 
     public override void _Draw()
     {
-        var accentColor = _isPlayerInRange
-            ? new Color(0.96f, 0.82f, 0.34f, 0.95f)
-            : new Color(0.72f, 0.74f, 0.66f, 0.72f);
+        ResolveWeaponVisualTexture();
 
-        DrawCircle(Vector2.Zero, PurchaseRadius, new Color(0.05f, 0.06f, 0.05f, 0.36f));
+        var accentColor = _isPlayerInRange
+            ? new Color(0.52f, 0.84f, 1.0f, 0.98f)
+            : new Color(0.45f, 0.72f, 0.9f, 0.78f);
+
+        DrawCircle(Vector2.Zero, PurchaseRadius, new Color(0.32f, 0.52f, 0.68f, 0.22f));
         DrawArc(Vector2.Zero, PurchaseRadius, 0.0f, Mathf.Pi * 2.0f, 48, accentColor, 3.0f, true);
-        DrawCircle(Vector2.Zero, 40.0f, new Color(0.035f, 0.041f, 0.037f, 0.9f));
+        DrawCircle(Vector2.Zero, 40.0f, new Color(0.44f, 0.62f, 0.78f, 0.74f));
         DrawArc(Vector2.Zero, 40.0f, 0.0f, Mathf.Pi * 2.0f, 36, accentColor, 2.0f, true);
+
+        if (WeaponVisualTexture is not null)
+        {
+            var drawSize = WeaponVisualTexture.GetSize() * WeaponVisualScale;
+            var drawPosition = WeaponVisualOffset - (drawSize * 0.5f);
+            DrawTextureRect(WeaponVisualTexture, new Rect2(drawPosition, drawSize), false);
+
+            if (HideDefaultWeaponGlyphWhenTextureAvailable)
+            {
+                return;
+            }
+        }
 
         DrawRect(new Rect2(new Vector2(-26.0f, -8.0f), new Vector2(46.0f, 15.0f)), accentColor, true);
         DrawRect(new Rect2(new Vector2(15.0f, -13.0f), new Vector2(20.0f, 7.0f)), accentColor, true);
@@ -302,6 +333,28 @@ public partial class WeaponShopPickup : Node2D
         }
 
         SetPromptText(ownedWeapon is not null && ownedWeapon.SupportsAmmoRestock ? "Reserva llena" : "Ya comprada");
+    }
+
+    private void ResolveWeaponVisualTexture()
+    {
+        if (WeaponVisualTexture is not null ||
+            _hasAttemptedWeaponVisualLoad ||
+            string.IsNullOrWhiteSpace(WeaponVisualTexturePath))
+        {
+            return;
+        }
+
+        _hasAttemptedWeaponVisualLoad = true;
+
+        var image = new Image();
+        var error = image.Load(WeaponVisualTexturePath);
+        if (error != Error.Ok)
+        {
+            GD.PushError($"No se pudo cargar el sprite del pickup de arma {WeaponVisualTexturePath}: {error}");
+            return;
+        }
+
+        WeaponVisualTexture = ImageTexture.CreateFromImage(image);
     }
 
     private void SetPromptText(string text)

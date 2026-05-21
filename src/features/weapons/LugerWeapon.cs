@@ -4,7 +4,7 @@ using ZombieRush.Features.Player;
 
 namespace ZombieRush.Features.Weapons;
 
-public partial class Glock9MmWeapon : PlayerWeapon
+public partial class LugerWeapon : PlayerWeapon
 {
     [Export(PropertyHint.Range, "1,200,1")]
     public int Damage { get; set; } = 35;
@@ -32,10 +32,11 @@ public partial class Glock9MmWeapon : PlayerWeapon
     private double _reloadTimeRemaining;
     private bool _hasInitializedAmmo;
 
-    public Glock9MmWeapon()
+    public LugerWeapon()
     {
-        WeaponId = "glock_9mm";
-        DisplayName = "Glock 9MM";
+        WeaponId = "luger";
+        DisplayName = "Luger";
+        HudIconPath = "res://assets/GunsPack/Guns/Luger.png";
         PurchasePrice = 700;
         CooldownSeconds = 0.18f;
     }

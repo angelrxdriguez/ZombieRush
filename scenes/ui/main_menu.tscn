@@ -1,181 +1,143 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://src/features/ui/MainMenu.cs" id="1_xm74s"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.032, 0.039, 0.036, 0.9)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar"]
+bg_color = Color(0, 0, 0, 0.78)
 border_width_bottom = 1
-border_color = Color(0.83, 0.18, 0.12, 0.45)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-content_margin_left = 20.0
-content_margin_top = 20.0
-content_margin_right = 20.0
-content_margin_bottom = 20.0
+border_color = Color(0.6, 0.08, 0.06, 0.55)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_alert"]
-bg_color = Color(0.17, 0.035, 0.03, 0.86)
-border_width_left = 1
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bottombar"]
+bg_color = Color(0, 0, 0, 0.74)
 border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.98, 0.41, 0.29, 0.68)
+border_color = Color(0.55, 0.07, 0.05, 0.45)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_threat_dot"]
+bg_color = Color(0.85, 0.1, 0.07, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-content_margin_left = 14.0
-content_margin_top = 10.0
-content_margin_right = 14.0
-content_margin_bottom = 10.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_info"]
-bg_color = Color(0.065, 0.078, 0.067, 0.84)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.9, 0.8, 0.49, 0.22)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-content_margin_left = 14.0
-content_margin_top = 12.0
-content_margin_right = 14.0
-content_margin_bottom = 12.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_select"]
-bg_color = Color(0.1, 0.12, 0.1, 0.96)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.9, 0.78, 0.46, 0.48)
-corner_radius_top_left = 7
-corner_radius_top_right = 7
-corner_radius_bottom_right = 7
-corner_radius_bottom_left = 7
-content_margin_left = 16.0
-content_margin_top = 13.0
-content_margin_right = 16.0
-content_margin_bottom = 13.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_select_hover"]
-bg_color = Color(0.13, 0.15, 0.12, 0.98)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(1, 0.88, 0.56, 0.78)
-corner_radius_top_left = 7
-corner_radius_top_right = 7
-corner_radius_bottom_right = 7
-corner_radius_bottom_left = 7
-content_margin_left = 16.0
-content_margin_top = 13.0
-content_margin_right = 16.0
-content_margin_bottom = 13.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
-bg_color = Color(0.67, 0.09, 0.07, 0.97)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(1, 0.57, 0.36, 0.78)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-content_margin_left = 26.0
-content_margin_top = 18.0
-content_margin_right = 26.0
-content_margin_bottom = 18.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
-bg_color = Color(0.82, 0.16, 0.1, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(1, 0.8, 0.58, 0.96)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-content_margin_left = 26.0
-content_margin_top = 18.0
-content_margin_right = 26.0
-content_margin_bottom = 18.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_pressed"]
-bg_color = Color(0.56, 0.07, 0.05, 0.99)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(1, 0.52, 0.32, 0.9)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-content_margin_left = 26.0
-content_margin_top = 18.0
-content_margin_right = 26.0
-content_margin_bottom = 18.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_right_panel"]
-bg_color = Color(0.027, 0.032, 0.03, 0.92)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.88, 0.2, 0.13, 0.38)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-content_margin_left = 24.0
-content_margin_top = 24.0
-content_margin_right = 24.0
-content_margin_bottom = 24.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_portrait"]
-bg_color = Color(0.018, 0.023, 0.021, 0.86)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.82, 0.12, 0.1, 0.36)
-corner_radius_top_left = 9
-corner_radius_top_right = 9
-corner_radius_bottom_right = 9
-corner_radius_bottom_left = 9
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_separator"]
-bg_color = Color(0.85, 0.76, 0.46, 0.25)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chip"]
-bg_color = Color(0.07, 0.082, 0.07, 0.92)
+bg_color = Color(0.04, 0.04, 0.05, 0.82)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.86, 0.75, 0.44, 0.25)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-content_margin_left = 12.0
-content_margin_top = 8.0
-content_margin_right = 12.0
-content_margin_bottom = 8.0
+border_color = Color(0.55, 0.08, 0.06, 0.42)
+content_margin_left = 10.0
+content_margin_top = 5.0
+content_margin_right = 10.0
+content_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mission_card"]
+bg_color = Color(0.022, 0.022, 0.028, 0.82)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.58, 0.08, 0.06, 0.4)
+content_margin_left = 18.0
+content_margin_top = 14.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_play_normal"]
+bg_color = Color(0.42, 0.04, 0.04, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.92, 0.18, 0.12, 0.85)
+content_margin_left = 28.0
+content_margin_top = 22.0
+content_margin_right = 28.0
+content_margin_bottom = 22.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_play_hover"]
+bg_color = Color(0.62, 0.07, 0.05, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.4, 0.22, 1)
+content_margin_left = 28.0
+content_margin_top = 22.0
+content_margin_right = 28.0
+content_margin_bottom = 22.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_play_pressed"]
+bg_color = Color(0.32, 0.03, 0.03, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.78, 0.14, 0.1, 1)
+content_margin_left = 28.0
+content_margin_top = 22.0
+content_margin_right = 28.0
+content_margin_bottom = 22.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exit_normal"]
+bg_color = Color(0.02, 0.02, 0.025, 0.55)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.6, 0.09, 0.07, 0.55)
+content_margin_left = 22.0
+content_margin_top = 14.0
+content_margin_right = 22.0
+content_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exit_hover"]
+bg_color = Color(0.18, 0.02, 0.02, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.95, 0.25, 0.18, 0.9)
+content_margin_left = 22.0
+content_margin_top = 14.0
+content_margin_right = 22.0
+content_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exit_pressed"]
+bg_color = Color(0.28, 0.03, 0.03, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.85, 0.18, 0.13, 1)
+content_margin_left = 22.0
+content_margin_top = 14.0
+content_margin_right = 22.0
+content_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_normal"]
+bg_color = Color(0.03, 0.03, 0.038, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.08, 0.06, 0.45)
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_hover"]
+bg_color = Color(0.06, 0.04, 0.045, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.92, 0.22, 0.15, 0.85)
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -193,10 +155,11 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+modulate = Color(0.35, 0.32, 0.34, 1)
 expand_mode = 1
 stretch_mode = 6
 
-[node name="BackdropTint" type="ColorRect" parent="."]
+[node name="DarkVeil" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -204,417 +167,396 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.02, 0.03, 0.028, 0.36)
+color = Color(0.01, 0.008, 0.012, 0.74)
 
-[node name="LeftCrimsonHaze" type="ColorRect" parent="."]
+[node name="LeftShade" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 10
-anchor_right = 0.64
+anchor_right = 0.62
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.23, 0.045, 0.04, 0.2)
+color = Color(0, 0, 0, 0.55)
 
-[node name="RightOliveHaze" type="ColorRect" parent="."]
+[node name="DeepLeftShade" type="ColorRect" parent="."]
 layout_mode = 1
-anchors_preset = 9
-anchor_left = 0.48
-anchor_right = 1.0
+anchors_preset = 10
+anchor_right = 0.42
 anchor_bottom = 1.0
-grow_horizontal = 0
+grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.035, 0.055, 0.042, 0.34)
+color = Color(0, 0, 0, 0.4)
+
+[node name="BottomShade" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 0.62
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.38)
+
+[node name="TopShade" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+anchor_bottom = 0.22
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.42)
+
+[node name="RedBloom" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 0.45
+anchor_bottom = 0.55
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.45, 0.04, 0.03, 0.14)
 
 [node name="FocusPulse" type="ColorRect" parent="."]
 layout_mode = 1
-anchors_preset = 10
-anchor_right = 0.54
+anchors_preset = 15
+anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.8, 0.13, 0.1, 0.12)
+color = Color(0.6, 0.05, 0.04, 0.04)
 
-[node name="RootMargin" type="MarginContainer" parent="."]
+[node name="TopAccent" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 2.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.62, 0.09, 0.07, 0.78)
+
+[node name="BottomAccent" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -2.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+color = Color(0.62, 0.09, 0.07, 0.55)
+
+[node name="TopBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 2.0
+offset_bottom = 50.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_topbar")
+
+[node name="Margin" type="MarginContainer" parent="TopBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 56
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 56
+theme_override_constants/margin_bottom = 10
+
+[node name="Row" type="HBoxContainer" parent="TopBar/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="BrandTag" type="Label" parent="TopBar/Margin/Row"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.12, 0.1, 0.95)
+theme_override_font_sizes/font_size = 15
+text = "Z/R // BUILD 0.1 — NIGHTFALL"
+
+[node name="BrandSpacer" type="Control" parent="TopBar/Margin/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ThreatGroup" type="HBoxContainer" parent="TopBar/Margin/Row"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="ThreatDot" type="Panel" parent="TopBar/Margin/Row/ThreatGroup"]
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_threat_dot")
+
+[node name="ThreatLabel" type="Label" parent="TopBar/Margin/Row/ThreatGroup"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.55, 0.48, 0.95)
+theme_override_font_sizes/font_size = 15
+text = "AMENAZA BIOLOGICA · RIESGO ALTO"
+
+[node name="Content" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 84.0
-offset_top = 70.0
-offset_right = -84.0
-offset_bottom = -70.0
+offset_left = 110.0
+offset_top = 80.0
+offset_right = -110.0
+offset_bottom = -80.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="Layout" type="HBoxContainer" parent="RootMargin"]
+[node name="Layout" type="HBoxContainer" parent="Content"]
 layout_mode = 2
-theme_override_constants/separation = 72
 
-[node name="Actions" type="VBoxContainer" parent="RootMargin/Layout"]
-custom_minimum_size = Vector2(660, 0)
+[node name="LeftCol" type="VBoxContainer" parent="Content/Layout"]
+custom_minimum_size = Vector2(720, 0)
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/separation = 24
-alignment = 1
+size_flags_vertical = 4
+theme_override_constants/separation = 14
 
-[node name="AlertStrip" type="PanelContainer" parent="RootMargin/Layout/Actions"]
-custom_minimum_size = Vector2(0, 58)
+[node name="Eyebrow" type="Label" parent="Content/Layout/LeftCol"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_alert")
-
-[node name="Margin" type="MarginContainer" parent="RootMargin/Layout/Actions/AlertStrip"]
-layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 12
-
-[node name="Row" type="HBoxContainer" parent="RootMargin/Layout/Actions/AlertStrip/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="AlertLabel" type="Label" parent="RootMargin/Layout/Actions/AlertStrip/Margin/Row"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 0.84, 0.69, 0.95)
+theme_override_colors/font_color = Color(0.92, 0.32, 0.18, 0.92)
 theme_override_font_sizes/font_size = 19
-text = "ALERTA BIOLOGICA"
+text = "// PROTOCOLO NIGHTFALL — SIN CONTACTO DESDE HACE 47H"
 
-[node name="AlertStatus" type="Label" parent="RootMargin/Layout/Actions/AlertStrip/Margin/Row"]
+[node name="TitleSpacer" type="Control" parent="Content/Layout/LeftCol"]
+custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.66, 0.58, 1)
-theme_override_font_sizes/font_size = 19
-text = "RIESGO ALTO"
-horizontal_alignment = 2
 
-[node name="TitleBlock" type="VBoxContainer" parent="RootMargin/Layout/Actions"]
+[node name="TitleStack" type="VBoxContainer" parent="Content/Layout/LeftCol"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = -18
 
-[node name="Eyebrow" type="Label" parent="RootMargin/Layout/Actions/TitleBlock"]
+[node name="TitleTop" type="Label" parent="Content/Layout/LeftCol/TitleStack"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.82, 0.57, 0.92)
-theme_override_font_sizes/font_size = 22
-text = "OPERACION NIGHTFALL"
+theme_override_colors/font_color = Color(0.92, 0.88, 0.82, 1)
+theme_override_colors/font_shadow_color = Color(0.42, 0.03, 0.03, 0.85)
+theme_override_constants/shadow_offset_x = 6
+theme_override_constants/shadow_offset_y = 6
+theme_override_constants/shadow_outline_size = 0
+theme_override_font_sizes/font_size = 132
+text = "ZOMBIE"
 
-[node name="Title" type="Label" parent="RootMargin/Layout/Actions/TitleBlock"]
+[node name="TitleBottom" type="Label" parent="Content/Layout/LeftCol/TitleStack"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.97, 0.97, 0.9, 1)
-theme_override_colors/font_shadow_color = Color(0.42, 0.04, 0.03, 0.86)
+theme_override_colors/font_color = Color(0.78, 0.11, 0.08, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.92)
 theme_override_constants/shadow_offset_x = 5
 theme_override_constants/shadow_offset_y = 5
-theme_override_font_sizes/font_size = 108
-text = "ZombieRush"
+theme_override_font_sizes/font_size = 132
+text = "RUSH."
 
-[node name="Subtitle" type="Label" parent="RootMargin/Layout/Actions/TitleBlock"]
+[node name="AccentBar" type="ColorRect" parent="Content/Layout/LeftCol"]
+custom_minimum_size = Vector2(140, 3)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.89, 0.9, 0.83, 0.94)
-theme_override_font_sizes/font_size = 27
-text = "Mantente vivo. Gana creditos. Repite."
+color = Color(0.82, 0.14, 0.1, 0.95)
 
-[node name="MissionPanel" type="PanelContainer" parent="RootMargin/Layout/Actions"]
-custom_minimum_size = Vector2(0, 128)
+[node name="Tagline" type="Label" parent="Content/Layout/LeftCol"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+theme_override_colors/font_color = Color(0.78, 0.76, 0.72, 0.88)
+theme_override_font_sizes/font_size = 20
+text = "Sobrevive a la noche. Pierde la cordura. Vuelve a empezar."
 
-[node name="Margin" type="MarginContainer" parent="RootMargin/Layout/Actions/MissionPanel"]
+[node name="MidSpacer" type="Control" parent="Content/Layout/LeftCol"]
+custom_minimum_size = Vector2(0, 22)
 layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 18
 
-[node name="Content" type="VBoxContainer" parent="RootMargin/Layout/Actions/MissionPanel/Margin"]
+[node name="PlayButton" type="Button" parent="Content/Layout/LeftCol"]
+custom_minimum_size = Vector2(0, 78)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.98, 0.95, 0.88, 1)
+theme_override_colors/font_hover_color = Color(1, 0.98, 0.92, 1)
+theme_override_colors/font_pressed_color = Color(0.95, 0.9, 0.84, 1)
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_play_hover")
+text = "►  INICIAR DESPLIEGUE"
+alignment = 0
+
+[node name="MissionCard" type="PanelContainer" parent="Content/Layout/LeftCol"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_mission_card")
+
+[node name="MissionContent" type="VBoxContainer" parent="Content/Layout/LeftCol/MissionCard"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="MissionHeader" type="Label" parent="RootMargin/Layout/Actions/MissionPanel/Margin/Content"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.85, 0.58, 1)
-theme_override_font_sizes/font_size = 22
-text = "Briefing"
-
-[node name="MissionDescription" type="Label" parent="RootMargin/Layout/Actions/MissionPanel/Margin/Content"]
-custom_minimum_size = Vector2(0, 52)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.88, 0.9, 0.84, 0.95)
-theme_override_font_sizes/font_size = 18
-text = "La ciudad sigue en cuarentena. Resiste oleadas y usa la economia para sostener tu run."
-autowrap_mode = 3
-
-[node name="MapPanel" type="PanelContainer" parent="RootMargin/Layout/Actions"]
-custom_minimum_size = Vector2(0, 238)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
-
-[node name="Margin" type="MarginContainer" parent="RootMargin/Layout/Actions/MapPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 22
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 22
-theme_override_constants/margin_bottom = 20
-
-[node name="Content" type="VBoxContainer" parent="RootMargin/Layout/Actions/MapPanel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 14
-
-[node name="MapLabel" type="Label" parent="RootMargin/Layout/Actions/MapPanel/Margin/Content"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.82, 0.52, 1)
-theme_override_font_sizes/font_size = 20
-text = "SELECCION DE MAPA"
-
-[node name="MapSelector" type="OptionButton" parent="RootMargin/Layout/Actions/MapPanel/Margin/Content"]
-custom_minimum_size = Vector2(0, 58)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.97, 0.97, 0.9, 1)
-theme_override_colors/font_hover_color = Color(1, 1, 0.95, 1)
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_select")
-theme_override_styles/hover = SubResource("StyleBoxFlat_select_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_select_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_select_hover")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_select")
-
-[node name="MapDescription" type="Label" parent="RootMargin/Layout/Actions/MapPanel/Margin/Content"]
-custom_minimum_size = Vector2(0, 46)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.86, 0.89, 0.81, 0.92)
-theme_override_font_sizes/font_size = 17
-text = "Distrito 01: zona urbana cerrada, calles estrechas y puntos de emboscada constantes."
-autowrap_mode = 3
-
-[node name="Availability" type="PanelContainer" parent="RootMargin/Layout/Actions/MapPanel/Margin/Content"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
-
-[node name="AvailabilityText" type="Label" parent="RootMargin/Layout/Actions/MapPanel/Margin/Content/Availability"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.92, 0.84, 0.58, 0.92)
-theme_override_font_sizes/font_size = 16
-text = "Mas mapas y rutas en proximas versiones"
-
-[node name="PlayButton" type="Button" parent="RootMargin/Layout/Actions"]
-custom_minimum_size = Vector2(0, 76)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.97, 0.9, 1)
-theme_override_font_sizes/font_size = 33
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
-theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
-text = "Jugar"
-
-[node name="HintsRow" type="HBoxContainer" parent="RootMargin/Layout/Actions"]
+[node name="MissionHeader" type="HBoxContainer" parent="Content/Layout/LeftCol/MissionCard/MissionContent"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="MoveHint" type="PanelContainer" parent="RootMargin/Layout/Actions/HintsRow"]
+[node name="MissionLabel" type="Label" parent="Content/Layout/LeftCol/MissionCard/MissionContent/MissionHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.28, 0.16, 0.92)
+theme_override_font_sizes/font_size = 15
+text = "// ZONA DE INSERCION"
+
+[node name="MissionSpacer" type="Control" parent="Content/Layout/LeftCol/MissionCard/MissionContent/MissionHeader"]
 layout_mode = 2
 size_flags_horizontal = 3
+
+[node name="RiskChip" type="PanelContainer" parent="Content/Layout/LeftCol/MissionCard/MissionContent/MissionHeader"]
+layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
 
-[node name="Label" type="Label" parent="RootMargin/Layout/Actions/HintsRow/MoveHint"]
+[node name="RiskChipLabel" type="Label" parent="Content/Layout/LeftCol/MissionCard/MissionContent/MissionHeader/RiskChip"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.92, 0.85, 0.95)
+theme_override_colors/font_color = Color(0.95, 0.42, 0.28, 0.95)
+theme_override_font_sizes/font_size = 13
+text = "● HOSTILES SIN CUANTIFICAR"
+
+[node name="MapSelector" type="OptionButton" parent="Content/Layout/LeftCol/MissionCard/MissionContent"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.97, 0.94, 0.88, 1)
+theme_override_colors/font_hover_color = Color(1, 0.98, 0.92, 1)
+theme_override_font_sizes/font_size = 21
+theme_override_styles/normal = SubResource("StyleBoxFlat_map_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_map_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_map_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_map_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_map_normal")
+
+[node name="MapDescription" type="Label" parent="Content/Layout/LeftCol/MissionCard/MissionContent"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.74, 0.72, 0.68, 0.85)
 theme_override_font_sizes/font_size = 15
-text = "WASD Mover"
-horizontal_alignment = 1
+text = "Distrito 01: zona urbana cerrada, calles estrechas y puntos de emboscada constantes."
+autowrap_mode = 3
 
-[node name="DashHint" type="PanelContainer" parent="RootMargin/Layout/Actions/HintsRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
-
-[node name="Label" type="Label" parent="RootMargin/Layout/Actions/HintsRow/DashHint"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.92, 0.85, 0.95)
-theme_override_font_sizes/font_size = 15
-text = "Espacio Dash"
-horizontal_alignment = 1
-
-[node name="FireHint" type="PanelContainer" parent="RootMargin/Layout/Actions/HintsRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
-
-[node name="Label" type="Label" parent="RootMargin/Layout/Actions/HintsRow/FireHint"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.92, 0.85, 0.95)
-theme_override_font_sizes/font_size = 15
-text = "Click Atacar"
-horizontal_alignment = 1
-
-[node name="FooterText" type="Label" parent="RootMargin/Layout/Actions"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.84, 0.78, 0.78)
-theme_override_font_sizes/font_size = 15
-text = "Pulsa Esc durante la partida para abrir pausa."
-
-[node name="CharacterPanel" type="PanelContainer" parent="RootMargin/Layout"]
-custom_minimum_size = Vector2(500, 0)
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_right_panel")
-
-[node name="Margin" type="MarginContainer" parent="RootMargin/Layout/CharacterPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 26
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 26
-
-[node name="Content" type="VBoxContainer" parent="RootMargin/Layout/CharacterPanel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 20
-
-[node name="Header" type="Label" parent="RootMargin/Layout/CharacterPanel/Margin/Content"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.97, 0.97, 0.9, 1)
-theme_override_font_sizes/font_size = 36
-text = "Estado del Operador"
-horizontal_alignment = 1
-
-[node name="Separator" type="Panel" parent="RootMargin/Layout/CharacterPanel/Margin/Content"]
-custom_minimum_size = Vector2(0, 2)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_separator")
-
-[node name="PortraitFrame" type="PanelContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content"]
-custom_minimum_size = Vector2(0, 294)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_portrait")
-
-[node name="Center" type="CenterContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content/PortraitFrame"]
+[node name="ExitSpacer" type="Control" parent="Content/Layout/LeftCol"]
+custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
 
-[node name="Silhouette" type="VBoxContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content/PortraitFrame/Center"]
+[node name="ExitButton" type="Button" parent="Content/Layout/LeftCol"]
+custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
-theme_override_constants/separation = 16
+size_flags_horizontal = 0
+theme_override_colors/font_color = Color(0.78, 0.12, 0.1, 0.95)
+theme_override_colors/font_hover_color = Color(1, 0.42, 0.3, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.55, 0.42, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("StyleBoxFlat_exit_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_exit_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_exit_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_exit_hover")
+text = "✕  ABANDONAR"
 alignment = 1
 
-[node name="Head" type="PanelContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content/PortraitFrame/Center/Silhouette"]
-custom_minimum_size = Vector2(96, 96)
+[node name="RightSpacer" type="Control" parent="Content/Layout"]
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_info")
+size_flags_horizontal = 3
 
-[node name="Body" type="PanelContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content/PortraitFrame/Center/Silhouette"]
-custom_minimum_size = Vector2(188, 216)
+[node name="BottomBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -56.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_bottombar")
+
+[node name="Margin" type="MarginContainer" parent="BottomBar"]
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_info")
+theme_override_constants/margin_left = 56
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 56
+theme_override_constants/margin_bottom = 10
 
-[node name="CharacterName" type="Label" parent="RootMargin/Layout/CharacterPanel/Margin/Content"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.85, 0.58, 1)
-theme_override_font_sizes/font_size = 24
-text = "Superviviente base"
-horizontal_alignment = 1
-
-[node name="StatsPanel" type="PanelContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_info")
-
-[node name="Margin" type="MarginContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content/StatsPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 14
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 14
-
-[node name="CharacterStats" type="VBoxContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content/StatsPanel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="HealthText" type="Label" parent="RootMargin/Layout/CharacterPanel/Margin/Content/StatsPanel/Margin/CharacterStats"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.88, 0.9, 0.84, 0.95)
-theme_override_font_sizes/font_size = 18
-text = "Vida inicial: 100"
-horizontal_alignment = 1
-
-[node name="WeaponText" type="Label" parent="RootMargin/Layout/CharacterPanel/Margin/Content/StatsPanel/Margin/CharacterStats"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.88, 0.9, 0.84, 0.95)
-theme_override_font_sizes/font_size = 18
-text = "Equipo inicial: espada + glock"
-horizontal_alignment = 1
-
-[node name="DashText" type="Label" parent="RootMargin/Layout/CharacterPanel/Margin/Content/StatsPanel/Margin/CharacterStats"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.88, 0.9, 0.84, 0.95)
-theme_override_font_sizes/font_size = 18
-text = "Habilidad: dash tactico"
-horizontal_alignment = 1
-
-[node name="CombatPanel" type="PanelContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_info")
-
-[node name="Margin" type="MarginContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content/CombatPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 14
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 14
-
-[node name="Content" type="VBoxContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content/CombatPanel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="CombatHeader" type="Label" parent="RootMargin/Layout/CharacterPanel/Margin/Content/CombatPanel/Margin/Content"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.85, 0.58, 0.95)
-theme_override_font_sizes/font_size = 19
-text = "Controles rapidos"
-horizontal_alignment = 1
-
-[node name="CombatHint1" type="Label" parent="RootMargin/Layout/CharacterPanel/Margin/Content/CombatPanel/Margin/Content"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.87, 0.9, 0.84, 0.9)
-theme_override_font_sizes/font_size = 16
-text = "R: recargar | B: comprar municion"
-horizontal_alignment = 1
-
-[node name="CombatHint2" type="Label" parent="RootMargin/Layout/CharacterPanel/Margin/Content/CombatPanel/Margin/Content"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.87, 0.9, 0.84, 0.9)
-theme_override_font_sizes/font_size = 16
-text = "1/2: cambiar arma | E: comprar arma"
-horizontal_alignment = 1
-
-[node name="BottomStatus" type="PanelContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content"]
-custom_minimum_size = Vector2(0, 56)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_alert")
-
-[node name="Margin" type="MarginContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content/BottomStatus"]
-layout_mode = 2
-theme_override_constants/margin_left = 14
-theme_override_constants/margin_top = 11
-theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 11
-
-[node name="Row" type="HBoxContainer" parent="RootMargin/Layout/CharacterPanel/Margin/Content/BottomStatus/Margin"]
+[node name="Row" type="HBoxContainer" parent="BottomBar/Margin"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="StatusLabel" type="Label" parent="RootMargin/Layout/CharacterPanel/Margin/Content/BottomStatus/Margin/Row"]
+[node name="Hint1" type="PanelContainer" parent="BottomBar/Margin/Row"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
+
+[node name="Label" type="Label" parent="BottomBar/Margin/Row/Hint1"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.84, 0.78, 0.9)
+theme_override_font_sizes/font_size = 13
+text = "WASD · MOVER"
+
+[node name="Hint2" type="PanelContainer" parent="BottomBar/Margin/Row"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
+
+[node name="Label" type="Label" parent="BottomBar/Margin/Row/Hint2"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.84, 0.78, 0.9)
+theme_override_font_sizes/font_size = 13
+text = "ESPACIO · DASH"
+
+[node name="Hint3" type="PanelContainer" parent="BottomBar/Margin/Row"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
+
+[node name="Label" type="Label" parent="BottomBar/Margin/Row/Hint3"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.84, 0.78, 0.9)
+theme_override_font_sizes/font_size = 13
+text = "CLICK · ATACAR"
+
+[node name="Hint4" type="PanelContainer" parent="BottomBar/Margin/Row"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
+
+[node name="Label" type="Label" parent="BottomBar/Margin/Row/Hint4"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.84, 0.78, 0.9)
+theme_override_font_sizes/font_size = 13
+text = "R · RECARGAR"
+
+[node name="Hint5" type="PanelContainer" parent="BottomBar/Margin/Row"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
+
+[node name="Label" type="Label" parent="BottomBar/Margin/Row/Hint5"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.84, 0.78, 0.9)
+theme_override_font_sizes/font_size = 13
+text = "1 · 2 · 3 · ARMA"
+
+[node name="Hint6" type="PanelContainer" parent="BottomBar/Margin/Row"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
+
+[node name="Label" type="Label" parent="BottomBar/Margin/Row/Hint6"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.84, 0.78, 0.9)
+theme_override_font_sizes/font_size = 13
+text = "B · MUNICION"
+
+[node name="Hint7" type="PanelContainer" parent="BottomBar/Margin/Row"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_chip")
+
+[node name="Label" type="Label" parent="BottomBar/Margin/Row/Hint7"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.84, 0.78, 0.9)
+theme_override_font_sizes/font_size = 13
+text = "E · COMPRAR"
+
+[node name="HintSpacer" type="Control" parent="BottomBar/Margin/Row"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 0.85, 0.7, 0.96)
-theme_override_font_sizes/font_size = 17
-text = "Estado de despliegue"
 
-[node name="DeploymentState" type="Label" parent="RootMargin/Layout/CharacterPanel/Margin/Content/BottomStatus/Margin/Row"]
+[node name="DeploymentState" type="Label" parent="BottomBar/Margin/Row"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.7, 0.62, 1)
-theme_override_font_sizes/font_size = 17
-text = "LISTO PARA JUGAR"
-horizontal_alignment = 2
-
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.95, 0.55, 0.48, 0.95)
+theme_override_font_sizes/font_size = 14
+text = "ESTADO · ESPERANDO ORDEN"

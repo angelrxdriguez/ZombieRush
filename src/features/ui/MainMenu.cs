@@ -18,50 +18,74 @@ public partial class MainMenu : Control
     public delegate void PlayRequestedEventHandler(string mapId);
 
     [Export]
-    public NodePath PlayButtonPath { get; set; } = "RootMargin/Layout/Actions/PlayButton";
+    public NodePath PlayButtonPath { get; set; } = "Content/Layout/LeftCol/PlayButton";
 
     [Export]
-    public NodePath MapSelectorPath { get; set; } = "RootMargin/Layout/Actions/MapPanel/Margin/Content/MapSelector";
+    public NodePath ExitButtonPath { get; set; } = "Content/Layout/LeftCol/ExitButton";
+
+    [Export]
+    public NodePath MapSelectorPath { get; set; } = "Content/Layout/LeftCol/MissionCard/MissionContent/MapSelector";
 
     [Export]
     public NodePath BackgroundPath { get; set; } = "Background";
 
     [Export]
-    public NodePath MapDescriptionPath { get; set; } = "RootMargin/Layout/Actions/MapPanel/Margin/Content/MapDescription";
+    public NodePath MapDescriptionPath { get; set; } = "Content/Layout/LeftCol/MissionCard/MissionContent/MapDescription";
 
     [Export]
-    public NodePath AlertStatusPath { get; set; } = "RootMargin/Layout/Actions/AlertStrip/Margin/Row/AlertStatus";
+    public NodePath AlertStatusPath { get; set; } = "TopBar/Margin/Row/ThreatGroup/ThreatLabel";
 
     [Export]
-    public NodePath DeploymentStatePath { get; set; } = "RootMargin/Layout/CharacterPanel/Margin/Content/BottomStatus/Margin/Row/DeploymentState";
+    public NodePath ThreatDotPath { get; set; } = "TopBar/Margin/Row/ThreatGroup/ThreatDot";
+
+    [Export]
+    public NodePath DeploymentStatePath { get; set; } = "BottomBar/Margin/Row/DeploymentState";
 
     [Export]
     public NodePath FocusPulsePath { get; set; } = "FocusPulse";
+
+    [Export]
+    public NodePath TitleTopPath { get; set; } = "Content/Layout/LeftCol/TitleStack/TitleTop";
+
+    [Export]
+    public NodePath TitleBottomPath { get; set; } = "Content/Layout/LeftCol/TitleStack/TitleBottom";
 
     [Export(PropertyHint.File, "*.png")]
     public string BackgroundTexturePath { get; set; } = "res://assets/ui/menu/fondo-menu.png";
 
     private Button? _playButton;
+    private Button? _exitButton;
     private OptionButton? _mapSelector;
     private TextureRect? _background;
     private Label? _mapDescription;
     private Label? _alertStatus;
+    private Panel? _threatDot;
     private Label? _deploymentState;
     private ColorRect? _focusPulse;
+    private Label? _titleTop;
+    private Label? _titleBottom;
     private double _pulseTimeSeconds;
+    private double _flickerTimer;
+    private float _flickerIntensity = 1.0f;
+    private readonly RandomNumberGenerator _rng = new();
 
     public override void _Ready()
     {
         Input.MouseMode = Input.MouseModeEnum.Visible;
         GetTree().Paused = false;
+        _rng.Randomize();
 
         _playButton = GetNodeOrNull<Button>(PlayButtonPath);
+        _exitButton = GetNodeOrNull<Button>(ExitButtonPath);
         _mapSelector = GetNodeOrNull<OptionButton>(MapSelectorPath);
         _background = GetNodeOrNull<TextureRect>(BackgroundPath);
         _mapDescription = GetNodeOrNull<Label>(MapDescriptionPath);
         _alertStatus = GetNodeOrNull<Label>(AlertStatusPath);
+        _threatDot = GetNodeOrNull<Panel>(ThreatDotPath);
         _deploymentState = GetNodeOrNull<Label>(DeploymentStatePath);
         _focusPulse = GetNodeOrNull<ColorRect>(FocusPulsePath);
+        _titleTop = GetNodeOrNull<Label>(TitleTopPath);
+        _titleBottom = GetNodeOrNull<Label>(TitleBottomPath);
 
         LoadBackgroundTexture();
         ConfigureMapSelector();
@@ -76,6 +100,11 @@ public partial class MainMenu : Control
             _playButton.Pressed += OnPlayButtonPressed;
             _playButton.GrabFocus();
         }
+
+        if (_exitButton is not null)
+        {
+            _exitButton.Pressed += OnExitButtonPressed;
+        }
     }
 
     public override void _ExitTree()
@@ -83,6 +112,11 @@ public partial class MainMenu : Control
         if (_playButton is not null)
         {
             _playButton.Pressed -= OnPlayButtonPressed;
+        }
+
+        if (_exitButton is not null)
+        {
+            _exitButton.Pressed -= OnExitButtonPressed;
         }
 
         if (_mapSelector is not null)
@@ -94,14 +128,22 @@ public partial class MainMenu : Control
     public override void _Process(double delta)
     {
         _pulseTimeSeconds += delta;
+        _flickerTimer -= delta;
+
         var pulse01 = (Mathf.Sin((float)(_pulseTimeSeconds * 2.4)) + 1.0f) * 0.5f;
+
+        if (_flickerTimer <= 0.0)
+        {
+            _flickerIntensity = _rng.RandfRange(0.78f, 1.0f);
+            _flickerTimer = _rng.RandfRange(0.06f, 0.22f);
+        }
 
         if (_playButton is not null)
         {
             _playButton.SelfModulate = new Color(
                 1.0f,
                 0.92f + (0.06f * pulse01),
-                0.88f + (0.1f * pulse01),
+                0.88f + (0.08f * pulse01),
                 1.0f);
         }
 
@@ -109,14 +151,31 @@ public partial class MainMenu : Control
         {
             _alertStatus.SelfModulate = new Color(
                 1.0f,
-                0.58f + (0.32f * pulse01),
-                0.5f + (0.26f * pulse01),
+                0.55f + (0.35f * pulse01),
+                0.5f + (0.28f * pulse01),
                 1.0f);
+        }
+
+        if (_threatDot is not null)
+        {
+            var intensity = 0.55f + (0.45f * pulse01);
+            _threatDot.SelfModulate = new Color(intensity, intensity * 0.35f, intensity * 0.25f, 1.0f);
         }
 
         if (_focusPulse is not null)
         {
-            _focusPulse.Color = new Color(0.8f, 0.13f, 0.1f, 0.08f + (0.07f * pulse01));
+            _focusPulse.Color = new Color(0.62f, 0.06f, 0.04f, 0.03f + (0.05f * pulse01));
+        }
+
+        if (_titleTop is not null)
+        {
+            _titleTop.Modulate = new Color(_flickerIntensity, _flickerIntensity, _flickerIntensity, 1.0f);
+        }
+
+        if (_titleBottom is not null)
+        {
+            var redFlicker = Mathf.Lerp(0.82f, 1.0f, _flickerIntensity);
+            _titleBottom.Modulate = new Color(redFlicker, _flickerIntensity * 0.85f, _flickerIntensity * 0.82f, 1.0f);
         }
     }
 
@@ -160,6 +219,11 @@ public partial class MainMenu : Control
         EmitSignal(SignalName.PlayRequested, GetSelectedMap().Id);
     }
 
+    private void OnExitButtonPressed()
+    {
+        GetTree().Quit();
+    }
+
     private void OnMapSelected(long index)
     {
         ApplyMapMetadata((int)index);
@@ -176,12 +240,12 @@ public partial class MainMenu : Control
 
         if (_alertStatus is not null)
         {
-            _alertStatus.Text = map.AlertStatus.ToUpperInvariant();
+            _alertStatus.Text = $"AMENAZA BIOLOGICA · {map.AlertStatus.ToUpperInvariant()}";
         }
 
         if (_deploymentState is not null)
         {
-            _deploymentState.Text = $"OBJETIVO: {map.DisplayName.ToUpperInvariant()}";
+            _deploymentState.Text = $"OBJETIVO · {map.DisplayName.ToUpperInvariant()}";
         }
     }
 

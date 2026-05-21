@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://src/features/weapons/WeaponShopPickup.cs" id="1_umrnl"]
-[ext_resource type="PackedScene" path="res://scenes/weapons/glock_9mm.tscn" id="2_el34h"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/luger.tscn" id="2_el34h"]
 [ext_resource type="Script" path="res://src/features/player/MedkitPickup.cs" id="3_5tq2k"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/shotgun_12g.tscn" id="4_5vsn1"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/frag_grenade.tscn" id="5_grenade_shop"]
@@ -116,27 +116,30 @@ polygon = PackedVector2Array(3840, 0, 3904, 0, 3904, 2160, 3840, 2160)
 
 [node name="WeaponShops" type="Node2D" parent="."]
 
-[node name="Glock9MMShop" type="Node2D" parent="WeaponShops"]
+[node name="LugerShop" type="Node2D" parent="WeaponShops"]
 z_index = 8
 position = Vector2(2240, 1080)
 script = ExtResource("1_umrnl")
 WeaponScene = ExtResource("2_el34h")
-DisplayName = "Glock 9MM"
+WeaponVisualTexturePath = "res://assets/GunsPack/Guns/Luger.png"
+WeaponVisualScale = 2.5
+HideDefaultWeaponGlyphWhenTextureAvailable = true
+DisplayName = "Luger"
 Price = 700
 PreferredSlotIndex = 1
 PurchaseRadius = 78.0
 
-[node name="NameLabel" type="Label" parent="WeaponShops/Glock9MMShop"]
+[node name="NameLabel" type="Label" parent="WeaponShops/LugerShop"]
 offset_left = -90.0
 offset_top = 52.0
 offset_right = 90.0
 offset_bottom = 76.0
 theme_override_colors/font_color = Color(0.96, 0.96, 0.88, 1)
 theme_override_font_sizes/font_size = 18
-text = "Glock 9MM"
+text = "Luger"
 horizontal_alignment = 1
 
-[node name="PriceLabel" type="Label" parent="WeaponShops/Glock9MMShop"]
+[node name="PriceLabel" type="Label" parent="WeaponShops/LugerShop"]
 offset_left = -90.0
 offset_top = 76.0
 offset_right = 90.0
@@ -146,7 +149,7 @@ theme_override_font_sizes/font_size = 24
 text = "$700"
 horizontal_alignment = 1
 
-[node name="PromptLabel" type="Label" parent="WeaponShops/Glock9MMShop"]
+[node name="PromptLabel" type="Label" parent="WeaponShops/LugerShop"]
 visible = false
 offset_left = -82.0
 offset_top = -87.0
@@ -162,6 +165,9 @@ z_index = 8
 position = Vector2(2560, 1080)
 script = ExtResource("1_umrnl")
 WeaponScene = ExtResource("4_5vsn1")
+WeaponVisualTexturePath = "res://assets/GunsPack/Guns/SawedOffShotgun.png"
+WeaponVisualScale = 2.0
+HideDefaultWeaponGlyphWhenTextureAvailable = true
 DisplayName = "Escopeta 12G"
 Price = 2800
 PreferredSlotIndex = 1

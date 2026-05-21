@@ -45,6 +45,7 @@ public partial class ShotgunWeapon : PlayerWeapon
     {
         WeaponId = "shotgun_12g";
         DisplayName = "Escopeta 12G";
+        HudIconPath = "res://assets/GunsPack/Guns/SawedOffShotgun.png";
         PurchasePrice = 2800;
         CooldownSeconds = 0.92f;
     }

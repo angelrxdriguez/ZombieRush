@@ -12,6 +12,9 @@ public abstract partial class PlayerWeapon : Node2D
     [Export]
     public string DisplayName { get; set; } = "Weapon";
 
+    [Export]
+    public string HudIconPath { get; set; } = string.Empty;
+
     [Export(PropertyHint.Range, "0,99999,1")]
     public int PurchasePrice { get; set; }
 

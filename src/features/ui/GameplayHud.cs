@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Godot;
 using ZombieRush.Features.Economy;
 using ZombieRush.Features.Player;
@@ -98,6 +99,8 @@ public partial class GameplayHud : CanvasLayer
     private Control? _gameOverOverlay;
     private Label? _survivalTimeText;
     private Button? _restartButton;
+    private readonly Dictionary<string, Texture2D> _weaponHudIcons = [];
+    private readonly HashSet<string> _weaponHudIconLoadFailures = [];
     private double _survivalTimeSeconds;
     private bool _isPauseMenuOpen;
     private bool _isGameOver;
@@ -565,9 +568,15 @@ public partial class GameplayHud : CanvasLayer
 
         if (weapon is null)
         {
+            button.Icon = null;
+            button.ExpandIcon = false;
             button.Text = $"{slotLabel} Vacio";
             return;
         }
+
+        var icon = GetWeaponHudIcon(weapon);
+        button.Icon = icon;
+        button.ExpandIcon = icon is not null;
 
         var hudDetail = weapon.GetHudDetail();
         if (!isGrenadeSlot && isActive && weapon.SupportsAmmoRestock && !weapon.IsAmmoFull())
@@ -579,9 +588,56 @@ public partial class GameplayHud : CanvasLayer
                 : $"{hudDetail} | {refillHint}";
         }
 
+        if (icon is not null)
+        {
+            button.Text = string.IsNullOrWhiteSpace(hudDetail)
+                ? slotLabel
+                : $"{slotLabel} {hudDetail}";
+            return;
+        }
+
         button.Text = string.IsNullOrWhiteSpace(hudDetail)
             ? $"{slotLabel} {weapon.DisplayName}"
             : $"{slotLabel} {weapon.DisplayName} {hudDetail}";
+    }
+
+    private Texture2D? GetWeaponHudIcon(PlayerWeapon weapon)
+    {
+        if (string.IsNullOrWhiteSpace(weapon.HudIconPath))
+        {
+            return null;
+        }
+
+        if (_weaponHudIcons.TryGetValue(weapon.HudIconPath, out var cachedIcon))
+        {
+            return cachedIcon;
+        }
+
+        var loadedIcon = LoadTextureFromImageFile(weapon.HudIconPath);
+        if (loadedIcon is null)
+        {
+            if (_weaponHudIconLoadFailures.Add(weapon.HudIconPath))
+            {
+                GD.PushWarning($"No se pudo cargar el icono HUD del arma: {weapon.HudIconPath}");
+            }
+
+            return null;
+        }
+
+        _weaponHudIcons[weapon.HudIconPath] = loadedIcon;
+        return loadedIcon;
+    }
+
+    private static Texture2D? LoadTextureFromImageFile(string resourcePath)
+    {
+        var image = new Image();
+        var error = image.Load(resourcePath);
+        if (error != Error.Ok)
+        {
+            return null;
+        }
+
+        return ImageTexture.CreateFromImage(image);
     }
 
     private void UpdateSurvivalTimerTexts()

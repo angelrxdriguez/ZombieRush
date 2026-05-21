@@ -130,7 +130,7 @@ Lo que ya existe:
 - IA base de zombie (persecucion, separacion, dano de contacto, salud y barra de vida)
 - sistema de combate basico:
   - melee con espada
-  - arma de fuego `Glock 9MM` con recarga y proyectiles
+  - arma de fuego `Luger` con recarga y proyectiles
 - inventario de armas de 2 slots con cambio de arma y compra de municion
 - economia de partida (`MoneyWallet`) y recompensa por baja zombie
 - tienda de arma dentro del mapa (`WeaponShopPickup`)
@@ -149,7 +149,7 @@ Lo que aun no existe:
 - mas tipos de zombies (solo existe `zombie_basic`)
 - sistema de oleadas completo (hoy hay spawning por oleadas, pero falta capa completa de diseño: estados entre oleadas, escalado mas rico, variedad por tipo y tuning global)
 - carga de sprites finales de gameplay (muchos visuals siguen en geometria placeholder)
-- mas armas y variedad de arsenal (actualmente espada + glock)
+- mas armas y variedad de arsenal (actualmente espada + luger)
 - progresion persistente completa de runs, upgrades y desbloqueos usando las tablas ya creadas
 - contenido real en `src/features/waves` y `src/features/maps` (carpetas aun vacias)
 
