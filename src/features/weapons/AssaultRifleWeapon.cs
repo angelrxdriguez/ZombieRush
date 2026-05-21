@@ -216,16 +216,17 @@ public partial class AssaultRifleWeapon : PlayerWeapon
 
     private void PlayFireSound(Node parent, Vector2 position)
     {
+        _ = position;
+
         var stream = LoadFireSound();
         if (stream is null)
         {
             return;
         }
 
-        var player = new AudioStreamPlayer2D
+        var player = new AudioStreamPlayer
         {
             Stream = stream,
-            GlobalPosition = position,
             VolumeDb = FireSoundVolumeDb,
             PitchScale = FireSoundPitchScale + _spreadRng.RandfRange(-FireSoundPitchVariation, FireSoundPitchVariation),
         };
@@ -243,13 +244,96 @@ public partial class AssaultRifleWeapon : PlayerWeapon
         }
 
         _hasAttemptedFireSoundLoad = true;
-        _cachedFireSound = ResourceLoader.Load<AudioStream>(FireSoundPath);
+
+        if (ResourceLoader.Exists(FireSoundPath))
+        {
+            _cachedFireSound = ResourceLoader.Load<AudioStream>(FireSoundPath);
+            if (_cachedFireSound is not null)
+            {
+                return _cachedFireSound;
+            }
+        }
+
+        _cachedFireSound = LoadWavFromDisk(FireSoundPath);
         if (_cachedFireSound is null)
         {
             GD.PushWarning($"No se pudo cargar el sonido del AK47: {FireSoundPath}");
         }
 
         return _cachedFireSound;
+    }
+
+    private static AudioStreamWav? LoadWavFromDisk(string resourcePath)
+    {
+        var bytes = Godot.FileAccess.GetFileAsBytes(resourcePath);
+        if (bytes is null || bytes.Length < 44)
+        {
+            return null;
+        }
+
+        if (bytes[0] != (byte)'R' || bytes[1] != (byte)'I' || bytes[2] != (byte)'F' || bytes[3] != (byte)'F' ||
+            bytes[8] != (byte)'W' || bytes[9] != (byte)'A' || bytes[10] != (byte)'V' || bytes[11] != (byte)'E')
+        {
+            return null;
+        }
+
+        var offset = 12;
+        var fmtChunkOffset = -1;
+        var dataChunkOffset = -1;
+        var dataChunkSize = 0;
+
+        while (offset + 8 <= bytes.Length)
+        {
+            var chunkId = System.Text.Encoding.ASCII.GetString(bytes, offset, 4);
+            var chunkSize = BitConverter.ToInt32(bytes, offset + 4);
+            offset += 8;
+
+            if (chunkId == "fmt ")
+            {
+                fmtChunkOffset = offset;
+            }
+            else if (chunkId == "data")
+            {
+                dataChunkOffset = offset;
+                dataChunkSize = chunkSize;
+                break;
+            }
+
+            offset += chunkSize;
+            if ((chunkSize & 1) != 0)
+            {
+                offset++;
+            }
+        }
+
+        if (fmtChunkOffset < 0 || dataChunkOffset < 0 || dataChunkSize <= 0 ||
+            dataChunkOffset + dataChunkSize > bytes.Length)
+        {
+            return null;
+        }
+
+        var audioFormat = BitConverter.ToInt16(bytes, fmtChunkOffset);
+        var numChannels = BitConverter.ToInt16(bytes, fmtChunkOffset + 2);
+        var sampleRate = BitConverter.ToInt32(bytes, fmtChunkOffset + 4);
+        var bitsPerSample = BitConverter.ToInt16(bytes, fmtChunkOffset + 14);
+
+        if (audioFormat != 1 || (bitsPerSample != 8 && bitsPerSample != 16) || numChannels is < 1 or > 2)
+        {
+            return null;
+        }
+
+        var pcmData = new byte[dataChunkSize];
+        Array.Copy(bytes, dataChunkOffset, pcmData, 0, dataChunkSize);
+
+        return new AudioStreamWav
+        {
+            Data = pcmData,
+            Format = bitsPerSample == 16
+                ? AudioStreamWav.FormatEnum.Format16Bits
+                : AudioStreamWav.FormatEnum.Format8Bits,
+            MixRate = sampleRate,
+            Stereo = numChannels == 2,
+        };
     }
 
     private Vector2 ApplySpread(Vector2 direction)
