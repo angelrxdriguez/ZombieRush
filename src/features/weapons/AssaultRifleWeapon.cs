@@ -7,6 +7,9 @@ namespace ZombieRush.Features.Weapons;
 public partial class AssaultRifleWeapon : PlayerWeapon
 {
     private const string ProjectileTexturePath = "res://assets/GunsPack/Bullets/PistolAmmoSmall.png";
+    private const string FireSoundPath = "res://assets/audio/sfx/Guns Sound Effects/AK47/Sound_of_an_AK47_being_fired. (1).wav";
+    private static AudioStream? _cachedFireSound;
+    private static bool _hasAttemptedFireSoundLoad;
 
     [Export(PropertyHint.Range, "1,200,1")]
     public int Damage { get; set; } = 25;
@@ -37,6 +40,15 @@ public partial class AssaultRifleWeapon : PlayerWeapon
 
     [Export(PropertyHint.Range, "0.05,2.0,0.05")]
     public float SpreadResetSeconds { get; set; } = 0.35f;
+
+    [Export(PropertyHint.Range, "-40.0,12.0,0.5")]
+    public float FireSoundVolumeDb { get; set; } = -6.0f;
+
+    [Export(PropertyHint.Range, "0.5,2.0,0.05")]
+    public float FireSoundPitchScale { get; set; } = 1.0f;
+
+    [Export(PropertyHint.Range, "0.0,0.5,0.01")]
+    public float FireSoundPitchVariation { get; set; } = 0.08f;
 
     private int _bulletsInMagazine;
     private int _reserveBullets;
@@ -193,11 +205,51 @@ public partial class AssaultRifleWeapon : PlayerWeapon
             ProjectileRange,
             visualTexturePath: ProjectileTexturePath);
 
+        PlayFireSound(projectileParent, owner.GlobalPosition);
+
         _bulletsInMagazine--;
         _consecutiveShots++;
         _timeSinceLastShot = 0.0;
         EmitStateChanged();
         return true;
+    }
+
+    private void PlayFireSound(Node parent, Vector2 position)
+    {
+        var stream = LoadFireSound();
+        if (stream is null)
+        {
+            return;
+        }
+
+        var player = new AudioStreamPlayer2D
+        {
+            Stream = stream,
+            GlobalPosition = position,
+            VolumeDb = FireSoundVolumeDb,
+            PitchScale = FireSoundPitchScale + _spreadRng.RandfRange(-FireSoundPitchVariation, FireSoundPitchVariation),
+        };
+
+        parent.AddChild(player);
+        player.Finished += player.QueueFree;
+        player.Play();
+    }
+
+    private static AudioStream? LoadFireSound()
+    {
+        if (_hasAttemptedFireSoundLoad)
+        {
+            return _cachedFireSound;
+        }
+
+        _hasAttemptedFireSoundLoad = true;
+        _cachedFireSound = ResourceLoader.Load<AudioStream>(FireSoundPath);
+        if (_cachedFireSound is null)
+        {
+            GD.PushWarning($"No se pudo cargar el sonido del AK47: {FireSoundPath}");
+        }
+
+        return _cachedFireSound;
     }
 
     private Vector2 ApplySpread(Vector2 direction)
