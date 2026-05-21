@@ -99,6 +99,8 @@ public partial class GameplayHud : CanvasLayer
     private Control? _gameOverOverlay;
     private Label? _survivalTimeText;
     private Button? _restartButton;
+    private ColorRect? _damageFlashOverlay;
+    private Tween? _damageFlashTween;
     private readonly Dictionary<string, Texture2D> _weaponHudIcons = [];
     private readonly HashSet<string> _weaponHudIconLoadFailures = [];
     private double _survivalTimeSeconds;
@@ -184,6 +186,8 @@ public partial class GameplayHud : CanvasLayer
             _weaponSlot4Button.Pressed += OnWeaponSlot4Pressed;
         }
 
+        CreateDamageFlashOverlay();
+
         ResolvePlayer();
         ResolveZombieContainer();
         ResolveMoneyWallet();
@@ -194,6 +198,44 @@ public partial class GameplayHud : CanvasLayer
         RefreshWeaponSlots();
         RefreshCrosshairReloadIndicator();
         UpdateSurvivalTimerTexts();
+    }
+
+    private void CreateDamageFlashOverlay()
+    {
+        var root = GetNodeOrNull<Control>("Root");
+        if (root is null)
+        {
+            return;
+        }
+
+        _damageFlashOverlay = new ColorRect
+        {
+            Name = "DamageFlashOverlay",
+            Color = new Color(0.92f, 0.08f, 0.08f, 0.0f),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        _damageFlashOverlay.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        root.AddChild(_damageFlashOverlay);
+
+        if (_crosshairCursor is not null)
+        {
+            root.MoveChild(_damageFlashOverlay, _crosshairCursor.GetIndex());
+        }
+    }
+
+    private void PlayDamageFlash()
+    {
+        if (_damageFlashOverlay is null || !IsInstanceValid(_damageFlashOverlay))
+        {
+            return;
+        }
+
+        _damageFlashTween?.Kill();
+        _damageFlashOverlay.Color = new Color(_damageFlashOverlay.Color, 0.42f);
+        _damageFlashTween = CreateTween();
+        _damageFlashTween.TweenProperty(_damageFlashOverlay, "color:a", 0.0f, 0.45f)
+            .SetTrans(Tween.TransitionType.Quad)
+            .SetEase(Tween.EaseType.Out);
     }
 
     public override void _ExitTree()
@@ -310,6 +352,7 @@ public partial class GameplayHud : CanvasLayer
 
         _player.HealthChanged += OnPlayerHealthChanged;
         _player.HealthDepleted += OnPlayerHealthDepleted;
+        _player.Damaged += OnPlayerDamaged;
     }
 
     private void DetachPlayer()
@@ -322,7 +365,18 @@ public partial class GameplayHud : CanvasLayer
 
         _player.HealthChanged -= OnPlayerHealthChanged;
         _player.HealthDepleted -= OnPlayerHealthDepleted;
+        _player.Damaged -= OnPlayerDamaged;
         _player = null;
+    }
+
+    private void OnPlayerDamaged(int damageAmount)
+    {
+        if (damageAmount <= 0)
+        {
+            return;
+        }
+
+        PlayDamageFlash();
     }
 
     private void ResolveZombieContainer()

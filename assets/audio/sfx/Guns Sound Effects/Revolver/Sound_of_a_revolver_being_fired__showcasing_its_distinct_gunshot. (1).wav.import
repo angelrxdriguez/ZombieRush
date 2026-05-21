@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://ds37tvb255yaj"
+path="res://.godot/imported/Sound_of_a_revolver_being_fired__showcasing_its_distinct_gunshot. (1).wav-967098dc5a5022cd35611682af0ba550.sample"
+
+[deps]
+
+source_file="res://assets/audio/sfx/Guns Sound Effects/Revolver/Sound_of_a_revolver_being_fired__showcasing_its_distinct_gunshot. (1).wav"
+dest_files=["res://.godot/imported/Sound_of_a_revolver_being_fired__showcasing_its_distinct_gunshot. (1).wav-967098dc5a5022cd35611682af0ba550.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2
